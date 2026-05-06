@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+
+{% block title %}Динозаврик - GamePlatform{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white text-center">
+                    <h3><i class="bi bi-dragon"></i> Динозаврик</h3>
+                </div>
+                <div class="card-body text-center">
+                    
+                    <!-- Canvas для игры -->
+                    <canvas id="gameCanvas" width="800" height="300" style="border:1px solid #000; background: #f0f0f0; width: 100%; height: auto;"></canvas>
+
+                    <!-- Кнопки -->
+                    <div class="mt-3">
+                        <button class="btn btn-success" onclick="startGame()">
+                            <i class="bi bi-play"></i> Старт
+                        </button>
+                        <button class="btn btn-danger" onclick="stopGame()">
+                            <i class="bi bi-stop"></i> Стоп
+                        </button>
+                    </div>
+
+                    <!-- Счет -->
+                    <div class="alert alert-info mt-3">
+                        Счет: <span id="score">0</span>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let canvas, ctx;
+    let dino = { x: 50, y: 200, width: 40, height: 40, vy: 0, gravity: 0.5, jumpPower: -10 };
+    let obstacles = [];
+    let gameRunning = false;
+    let score = 0;
+    let frameCount = 0;
+    let gameLoopId = null;
+    let dinoImg = new Image();
+    let imgLoaded = false;
+
+    // Фон
+    let bgX = 0;
+    let bgSpeed = 3;
+
+    dinoImg.src = "/static/images/dino.png";
+    dinoImg.onload = function() {
+        imgLoaded = true;
+        console.log("Динозавр загружен");
+    };
+    dinoImg.onerror = function() {
+        console.log("Ошибка загрузки динозавра");
+    };
+
+    function initCanvas() {
+        canvas = document.getElementById('gameCanvas');
+        if (!canvas) {
+            console.error('Canvas not found!');
+            return;
+        }
+        ctx = canvas.getContext('2d');
+        console.log('Canvas initialized');
+
+        // Рисуем начальное состояние
+        if (imgLoaded) {
+            ctx.drawImage(dinoImg, dino.x, dino.y, dino.width, dino.height);
+        } else {
+            ctx.fillStyle = '#333';
+            ctx.fillRect(dino.x, dino.y, dino.width, dino.height);
+        }
+    }
+
+    function startGame() {
+        if(!gameRunning) {
+            gameRunning = true;
+            obstacles = [];
+            score = 0;
+            dino.y = 200;
+            dino.vy = 0;
+            bgX = 0;
+            document.getElementById('score').textContent = '0';
+            if (gameLoopId) cancelAnimationFrame(gameLoopId);
+            updateGame();
+            console.log('Game started');
+        }
+    }
+
+    function stopGame() {
+        gameRunning = false;
+        if (gameLoopId) {
+            cancelAnimationFrame(gameLoopId);
+            gameLoopId = null;
+        }
+        console.log('Game stopped');
+    }
+
+    function updateGame() {
+        if(!gameRunning) return;
+
+        // Очистка
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // ВЕРХНЯЯ ЧАСТЬ - небо
+        ctx.fillStyle = '#87CEEB';  // голубой
+        ctx.fillRect(0, 0, canvas.width, 200);
+
+          // Песок
+      ctx.fillStyle = '#f4e4c1';  // цвет песка
+        ctx.fillRect(0, 200, canvas.width, 100);
+
+       // Текстура песка (точки)
+        ctx.fillStyle = '#d2b48c';
+        for(let i = 0; i < canvas.width; i += 20) {
+            for(let j = 205; j < 230; j += 10) {
+                ctx.beginPath();
+                ctx.arc(i + (frameCount % 20), j, 2, 0, Math.PI * 2);
+                ctx.fillStyle = '#c1a17e';
+                ctx.fill();
+            }
+        }
+
+        // Линия горизонта
+        ctx.beginPath();
+        ctx.strokeStyle = '#4a4a4a';
+        ctx.lineWidth = 1;
+        ctx.moveTo(0, 210);
+        ctx.lineTo(canvas.width, 210);
+        ctx.stroke();
+
+        // Физика динозавра
+        dino.vy += dino.gravity;
+        dino.y += dino.vy;
+
+        if(dino.y > 200) {
+            dino.y = 200;
+            dino.vy = 0;
+        }
+
+        // Рисуем динозавра
+        if (imgLoaded) {
+            ctx.drawImage(dinoImg, dino.x, dino.y, dino.width, dino.height);
+        } else {
+            ctx.fillStyle = '#333';
+            ctx.fillRect(dino.x, dino.y, dino.width, dino.height);
+        }
+
+        // Спавн препятствий
+        if(frameCount % 80 === 0) {
+            let height = 30 + Math.floor(Math.random() * 30);
+            obstacles.push({
+                x: canvas.width,
+                y: 240 - height,
+                width: 15,
+                height: height
+            });
+        }
+
+        // Препятствия
+        for(let i = obstacles.length - 1; i >= 0; i--) {
+            let obs = obstacles[i];
+            obs.x -= 5 + (Math.floor(score / 200) * 0.5);
+
+            // Рисуем кактус
+            ctx.fillStyle = '#2d5a27';
+            ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+
+            // Добавляем колючки
+            ctx.fillStyle = '#1e3b1a';
+            ctx.fillRect(obs.x - 3, obs.y + 5, 5, 5);
+            ctx.fillRect(obs.x + obs.width - 2, obs.y + 15, 5, 5);
+
+            // Столкновение
+            if(dino.x < obs.x + obs.width &&
+               dino.x + dino.width > obs.x &&
+               dino.y < obs.y + obs.height &&
+               dino.y + dino.height > obs.y) {
+                gameRunning = false;
+                alert('Game Over! Счет: ' + score);
+                saveScore(score);
+                break;
+            }
+
+            if(obs.x + obs.width < 0) {
+                obstacles.splice(i, 1);
+                score += 10;
+                document.getElementById('score').textContent = score;
+            }
+        }
+
+        frameCount++;
+        gameLoopId = requestAnimationFrame(updateGame);
+    }
+
+    function saveScore(score) {
+        fetch('/api/save_score', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                game: 'dino',
+                score: score
+            })
+        }).catch(err => console.error('Error saving score:', err));
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if(e.code === 'Space' && gameRunning) {
+            e.preventDefault();
+            if(dino.y === 200) {
+                dino.vy = dino.jumpPower;
+            }
+        }
+    });
+
+    // Запускаем когда страница загрузится
+    window.onload = function() {
+        initCanvas();
+    };
+</script>
+{% endblock %}

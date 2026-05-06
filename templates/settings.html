@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Настройки - GamePlatform{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="bi bi-gear"></i> Настройки профиля</h4>
+                </div>
+                <div class="card-body">
+                    
+                    <!-- Смена пароля -->
+                    <h5 class="mb-3">Смена пароля</h5>
+                    <form method="POST" class="mb-4">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-3">
+                            {{ form.old_password.label(class="form-label") }}
+                            {{ form.old_password(class="form-control" + (" is-invalid" if form.old_password.errors else "")) }}
+                            {% for error in form.old_password.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.new_password.label(class="form-label") }}
+                            {{ form.new_password(class="form-control" + (" is-invalid" if form.new_password.errors else "")) }}
+                            {% for error in form.new_password.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.confirm.label(class="form-label") }}
+                            {{ form.confirm(class="form-control" + (" is-invalid" if form.confirm.errors else "")) }}
+                            {% for error in form.confirm.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-key"></i> Сменить пароль
+                        </button>
+                    </form>
+                    
+                    <hr>
+                    
+                    <!-- Смена аватара -->
+                    <h5 class="mb-3">Сменить аватар</h5>
+                    <form action="{{ url_for('upload_avatar') }}" method="POST" enctype="multipart/form-data" class="mb-4">
+                        <div class="mb-3">
+                            <label class="form-label">Выберите изображение</label>
+                            <input type="file" name="avatar" class="form-control" accept="image/*" required>
+                        </div>
+                        <button type="submit" class="btn btn-info">
+                            <i class="bi bi-upload"></i> Загрузить аватар
+                        </button>
+                    </form>
+                    
+                    <hr>
+                    
+                    <!-- Документация -->
+                    <h5 class="mb-3">О проекте</h5>
+                    <p>
+                        GamePlatform - это игровая платформа с тремя классическими играми:
+                        Судоку, Динозаврик и Тетрис.
+                    </p>
+                    <a href="{{ url_for('docs') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-file-text"></i> Документация
+                    </a>
+                    
+                    <hr>
+                    
+                    <!-- Опасная зона -->
+                    <h5 class="mb-3 text-danger">Опасная зона</h5>
+                    <button class="btn btn-danger" onclick="deleteAccount()">
+                        <i class="bi bi-exclamation-triangle"></i> Удалить аккаунт
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function deleteAccount() {
+    if(confirm('Вы уверены? Это действие необратимо!')) {
+        if(confirm('Точно уверены? Все ваши данные будут удалены.')) {
+            fetch('/api/delete_account', {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if(data.success) {
+                    window.location.href = '/';
+                }
+            });
+        }
+    }
+}
+</script>
+{% endblock %}

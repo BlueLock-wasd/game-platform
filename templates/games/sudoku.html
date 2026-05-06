@@ -1,0 +1,278 @@
+{% extends "base.html" %}
+
+{% block title %}Судоку - GamePlatform{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white text-center">
+                    <h3><i class="bi bi-grid-3x3-gap-fill"></i> Судоку</h3>
+                </div>
+                <div class="card-body text-center">
+
+                    <!-- ИГРОВОЕ ПОЛЕ -->
+                    <div id="sudoku-grid" class="d-inline-block mb-4"></div>
+
+                    <!-- КНОПКИ УПРАВЛЕНИЯ -->
+                    <div class="d-flex justify-content-center gap-2 mb-3 flex-wrap">
+                        <button class="btn btn-outline-primary" onclick="setSize(4)">4x4</button>
+                        <button class="btn btn-outline-primary" onclick="setSize(6)">6x6</button>
+                        <button class="btn btn-success" id="checkBtn" onclick="checkSudoku()">
+                            <i class="bi bi-check-circle"></i> Проверить
+                        </button>
+                        <button class="btn btn-warning" onclick="newGame()">
+                            <i class="bi bi-dice"></i> Новая игра
+                        </button>
+                        <button class="btn btn-info" onclick="solveSudoku()">
+                            <i class="bi bi-lightbulb"></i> Решение
+                        </button>
+                    </div>
+
+                    <!-- СЧЕТ -->
+                    <div class="alert alert-info mt-3" id="score-display">
+                        Счет: <span id="score">0</span>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentSize = 4;
+    let grid = [];
+    let solution = [];
+    let score = 0;
+    let solutionShown = false;  // Флаг - было ли показано решение
+
+    // Генерация судоку 4x4
+    function generateSudoku4x4() {
+        let templates = [
+            // Несколько вариантов для разнообразия
+            {
+                puzzle: [
+                    [1, 2, 0, 4],
+                    [3, 0, 1, 2],
+                    [2, 1, 4, 0],
+                    [0, 3, 2, 1]
+                ],
+                solution: [
+                    [1, 2, 3, 4],
+                    [3, 4, 1, 2],
+                    [2, 1, 4, 3],
+                    [4, 3, 2, 1]
+                ]
+            },
+            {
+                puzzle: [
+                    [0, 1, 0, 3],
+                    [4, 0, 2, 0],
+                    [0, 3, 0, 1],
+                    [2, 0, 4, 0]
+                ],
+                solution: [
+                    [2, 1, 4, 3],
+                    [4, 3, 2, 1],
+                    [1, 3, 4, 2],
+                    [2, 4, 1, 3]
+                ]
+            }
+        ];
+
+        return templates[Math.floor(Math.random() * templates.length)];
+    }
+
+    // Генерация судоку 6x6
+    function generateSudoku6x6() {
+        let templates = [
+            {
+                puzzle: [
+                    [1, 2, 3, 0, 5, 6],
+                    [4, 5, 6, 1, 2, 0],
+                    [2, 3, 0, 5, 6, 4],
+                    [5, 6, 4, 2, 3, 0],
+                    [3, 0, 2, 6, 4, 5],
+                    [6, 4, 5, 3, 0, 2]
+                ],
+                solution: [
+                    [1, 2, 3, 4, 5, 6],
+                    [4, 5, 6, 1, 2, 3],
+                    [2, 3, 1, 5, 6, 4],
+                    [5, 6, 4, 2, 3, 1],
+                    [3, 1, 2, 6, 4, 5],
+                    [6, 4, 5, 3, 1, 2]
+                ]
+            }
+        ];
+
+        return templates[0];
+    }
+
+    // Создание сетки
+    function createGrid() {
+        let html = `<table class="mx-auto size-${currentSize}">`;
+
+        for(let i = 0; i < currentSize; i++) {
+            html += '<tr>';
+            for(let j = 0; j < currentSize; j++) {
+                let value = grid[i] && grid[i][j] !== 0 ? grid[i][j] : '';
+                let maxLength = 1;  // Максимум 1 цифра для 4x4 и 6x6
+
+                html += `<td>
+                    <input type="text"
+                           class="sudoku-cell form-control"
+                           id="cell-${i}-${j}"
+                           value="${value}"
+                           maxlength="${maxLength}"
+                           data-row="${i}"
+                           data-col="${j}"
+                           ${value ? 'readonly' : ''}
+                           oninput="validateInput(this)">
+                </td>`;
+            }
+            html += '</tr>';
+        }
+        html += '</table>';
+
+        document.getElementById('sudoku-grid').innerHTML = html;
+
+        // Показываем кнопку проверить
+        document.getElementById('checkBtn').style.display = 'inline-block';
+    }
+
+    // Валидация ввода
+    function validateInput(input) {
+        let val = input.value;
+        let maxVal = currentSize;
+
+        // Разрешаем только цифры
+        if(val && !/^\d+$/.test(val)) {
+            input.value = '';
+            return;
+        }
+
+        let num = parseInt(val);
+        if(val && (num < 1 || num > maxVal)) {
+            input.value = '';
+        }
+
+        // Убираем подсветку при изменении
+        input.classList.remove('correct-cell', 'wrong-cell');
+    }
+
+    // Проверка решения
+    function checkSudoku() {
+        // Если решение уже показывали - не проверяем
+        if(solutionShown) {
+            alert('Вы уже посмотрели решение! Начните новую игру.');
+            return;
+        }
+
+        let allCorrect = true;
+        let currentScore = 0;
+
+        for(let i = 0; i < currentSize; i++) {
+            for(let j = 0; j < currentSize; j++) {
+                let cell = document.getElementById(`cell-${i}-${j}`);
+                let val = cell.value ? parseInt(cell.value) : 0;
+
+                cell.classList.remove('correct-cell', 'wrong-cell');
+
+                if(val === solution[i][j]) {
+                    cell.classList.add('correct-cell');
+                    currentScore += 10;
+                } else if(val !== 0) {
+                    cell.classList.add('wrong-cell');
+                    allCorrect = false;
+                } else {
+                    allCorrect = false;
+                }
+            }
+        }
+
+        score = currentScore;
+        document.getElementById('score').textContent = score;
+
+        if(allCorrect) {
+            alert('Поздравляем! Судоку решено верно!');
+            saveScore(score);
+        }
+    }
+
+    // Новая игра
+    function newGame() {
+        let gameData;
+
+        switch(currentSize) {
+            case 4:
+                gameData = generateSudoku4x4();
+                break;
+            case 6:
+                gameData = generateSudoku6x6();
+                break;
+        }
+
+        grid = gameData.puzzle;
+        solution = gameData.solution;
+        score = 0;
+        solutionShown = false;  // Сбрасываем флаг
+
+        createGrid();
+        document.getElementById('score').textContent = '0';
+
+        // Показываем кнопку проверить
+        document.getElementById('checkBtn').style.display = 'inline-block';
+    }
+
+    // Показать решение
+    function solveSudoku() {
+        for(let i = 0; i < currentSize; i++) {
+            for(let j = 0; j < currentSize; j++) {
+                let cell = document.getElementById(`cell-${i}-${j}`);
+                cell.value = solution[i][j];
+                cell.classList.add('solved-cell');
+                cell.classList.remove('correct-cell', 'wrong-cell');
+            }
+        }
+
+        // Устанавливаем флаг и прячем кнопку проверить
+        solutionShown = true;
+        document.getElementById('checkBtn').style.display = 'none';
+
+        alert('Решение показано. Чтобы получить очки, начните новую игру.');
+    }
+
+    // Смена размера
+    function setSize(size) {
+        currentSize = size;
+
+        // Подсветка активной кнопки
+        document.querySelectorAll('.btn-group .btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        event.target.classList.add('active');
+
+        newGame();
+    }
+
+    // Сохранить счет
+    function saveScore(score) {
+        fetch('/api/save_score', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                game: 'sudoku',
+                score: score
+            })
+        });
+    }
+
+    // Инициализация
+    window.onload = function() {
+        newGame();
+    };
+</script>
+{% endblock %}

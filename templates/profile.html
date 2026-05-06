@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+
+{% block title %}Профиль {{ user.username }} - GamePlatform{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Шапка профиля -->
+    <div class="profile-header slide-in">
+        <div class="row align-items-center">
+            <div class="col-md-3 text-center">
+                <img src="{{ url_for('static', filename='uploads/' + (user.avatar_url if user.avatar_url else 'default.jpg')) }}" 
+                     class="profile-avatar" 
+                     alt="Avatar"
+                     id="profileAvatar">
+            </div>
+            <div class="col-md-6">
+                <h2 class="mb-2">
+                    {{ user.username }}
+                    {% if user.role == 'admin' %}
+                        <span class="badge bg-danger ms-2">Администратор</span>
+                    {% endif %}
+                </h2>
+                <p class="text-muted">
+                    <i class="bi bi-envelope"></i> {{ user.email }}<br>
+                    <i class="bi bi-calendar"></i> На сайте с: {{ user.created_at.strftime('%d.%m.%Y') }}
+                </p>
+                
+                <!-- Серия заходов -->
+                {% if streak %}
+                <div class="streak-badge">
+                    <i class="bi bi-fire"></i> 
+                    Текущая серия: {{ streak.current_streak }} дней
+                    {% if streak.max_streak > streak.current_streak %}
+                        <br><small>Рекорд: {{ streak.max_streak }} дней</small>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+            <div class="col-md-3 text-end">
+                {% if current_user.is_authenticated and current_user.id == user.id %}
+                    <a href="{{ url_for('settings') }}" class="btn btn-primary">
+                        <i class="bi bi-gear"></i> Настройки
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Статистика по играм -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h3 class="mb-3"><i class="bi bi-bar-chart"></i> Статистика игр</h3>
+        </div>
+
+        {% for game_name, game_stats in stats.items() %}
+        <div class="col-md-4 mb-3">
+            <div class="stat-card">
+                <div class="game-icon">
+                    {% if game_name == 'sudoku' %}
+                        <i class="bi bi-grid-3x3-gap-fill text-primary"></i>
+                    {% elif game_name == 'dino' %}
+                        <i class="bi bi-dragon text-success"></i>
+                    {% elif game_name == 'tetris' %}
+                        <i class="bi bi-stack text-danger"></i>
+                    {% endif %}
+                </div>
+                <h5>{{ game_name|capitalize }}</h5>
+
+                <!-- Основная статистика -->
+                <div class="row mt-3">
+                    <div class="col-6">
+                        <div class="stat-label">Всего игр</div>
+                        <div class="stat-value">{{ game_stats.total }}</div>
+                    </div>
+                    <div class="col-6">
+                        <div class="stat-label">Средний счет</div>
+                        <div class="stat-value">{{ game_stats.avg }}</div>
+                    </div>
+                </div>
+
+                <hr>
+
+                <!-- Максимальный счет -->
+                <div class="mb-3">
+                    <div class="stat-label">🏆 РЕКОРД</div>
+                    <div style="font-size: 2.5rem; font-weight: bold; color: gold; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
+                        {{ game_stats.max }}
+                    </div>
+                </div>
+
+                <!-- Последняя игра -->
+                <div class="text-muted small">
+                    <i class="bi bi-clock"></i> Последняя игра: {{ game_stats.last }}
+                </div>
+
+                <!-- Последние результаты -->
+                {% if game_stats.scores %}
+                <hr>
+                <div class="text-start">
+                    <div class="stat-label mb-2">Последние результаты:</div>
+                    {% for score in game_stats.scores %}
+                        <span class="badge bg-secondary me-1">{{ score }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12">
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i> У пользователя пока нет игр
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Заметки на стене -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="bi bi-journal-text"></i> Заметки</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Форма заметки (только для авторизованных) -->
+                    {% if current_user.is_authenticated %}
+                    <form method="POST" class="mb-4">
+                        {{ form.hidden_tag() }}
+                        <div class="mb-3">
+                            {{ form.content(class="form-control", rows="3", placeholder="Напишите заметку...") }}
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-pencil"></i> Оставить заметку
+                        </button>
+                    </form>
+                    {% endif %}
+
+                    <!-- Список заметок -->
+                    {% if notes %}
+                        {% for note in notes %}
+                        <div class="comment-box">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <a href="{{ url_for('profile', username=note.author.username) }}" class="comment-author">
+                                        <img src="{{ url_for('static', filename='uploads/' + (note.author.avatar_url if note.author.avatar_url else 'default.jpg')) }}"
+                                             class="rounded-circle me-1"
+                                             width="20" height="20"
+                                             style="object-fit: cover;">
+                                        {{ note.author.username }}
+                                    </a>
+                                    <span class="comment-date ms-2">
+                                        {{ note.created_at.strftime('%d.%m.%Y %H:%M') }}
+                                    </span>
+                                </div>
+                                {% if current_user.id == note.author_id or current_user.role == 'admin' %}
+                                <button class="btn btn-sm btn-danger" onclick="deleteNote({{ note.id }})">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                            <p class="mt-2 mb-0">{{ note.content }}</p>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted text-center">Пока нет заметок</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function deleteNote(noteId) {
+    if(confirm('Удалить заметку?')) {
+        fetch('/api/delete_note/' + noteId, {
+            method: 'DELETE'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.success) {
+                location.reload();
+            } else {
+                alert('Ошибка при удалении');
+            }
+        });
+    }
+}
+</script>
+{% endblock %}

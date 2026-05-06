@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block title %}Документация - GamePlatform{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0"><i class="bi bi-file-text"></i> Документация проекта</h3>
+                </div>
+                <div class="card-body">
+                    
+                    <h4>О платформе</h4>
+                    <p>
+                        GamePlatform - это веб-платформа для классических игр, разработанная в рамках 
+                        дипломного проекта. Платформа включает в себя три игры, систему статистики, 
+                        профили пользователей и социальные функции.
+                    </p>
+                    
+                    <h4 class="mt-4">Технологии</h4>
+                    <ul>
+                        <li><strong>Backend:</strong> Python Flask</li>
+                        <li><strong>База данных:</strong> MySQL</li>
+                        <li><strong>Frontend:</strong> HTML, CSS, JavaScript, Bootstrap 5</li>
+                        <li><strong>Аутентификация:</strong> Flask-Login</li>
+                        <li><strong>Формы:</strong> Flask-WTF</li>
+                    </ul>
+                    
+                    <h4 class="mt-4">Игры</h4>
+                    
+                    <div class="card mb-3">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">Судоку</h5>
+                        </div>
+                        <div class="card-body">
+                            <p>Классическая головоломка с числами. Доступны два размера поля:</p>
+                            <ul>
+                                <li><strong>4x4</strong> - легкий уровень</li>
+                                <li><strong>6x6</strong> - сложный уровень</li>
+                            </ul>
+                            <p><strong>Управление:</strong> Ввод цифр с клавиатуры</p>
+                            <p><strong>Система очков:</strong> 10 очков за каждую правильную клетку</p>
+                        </div>
+                    </div>
+                    
+                    <div class="card mb-3">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0">Динозаврик</h5>
+                        </div>
+                        <div class="card-body">
+                            <p>Бесконечный раннер, вдохновленный игрой из Chrome.</p>
+                            <p><strong>Управление:</strong> Пробел - прыжок</p>
+                            <p><strong>Система очков:</strong> 10 очков за каждое преодоленное препятствие</p>
+                        </div>
+                    </div>
+                    
+                    <div class="card mb-3">
+                        <div class="card-header bg-danger text-white">
+                            <h5 class="mb-0">Тетрис</h5>
+                        </div>
+                        <div class="card-body">
+                            <p>Легендарная игра-головоломка.</p>
+                            <p><strong>Управление:</strong></p>
+                            <ul>
+                                <li>← → - движение</li>
+                                <li>↓ - ускорить падение</li>
+                                <li>↑ - повернуть фигуру</li>
+                            </ul>
+                            <p><strong>Система очков:</strong> 100 очков за линию</p>
+                            <p><strong>Уровни:</strong> Уровень повышается каждые 500 очков, скорость растет</p>
+                        </div>
+                    </div>
+                    
+                    <h4 class="mt-4">Система статистики</h4>
+                    <ul>
+                        <li><strong>Серии заходов:</strong> За каждый день входа серия увеличивается</li>
+                        <li><strong>Рекорды:</strong> Сохраняются лучшие результаты по каждой игре</li>
+                        <li><strong>Общая статистика:</strong> Количество игр, средний счет</li>
+                    </ul>
+                    
+                    <h4 class="mt-4">Социальные функции</h4>
+                    <ul>
+                        <li><strong>Друзья:</strong> Добавление пользователей в друзья</li>
+                        <li><strong>Комментарии:</strong> Возможность оставлять комментарии на стенах</li>
+                        <li><strong>Роли:</strong> Пользователи и администраторы</li>
+                    </ul>
+                    
+                    <h4 class="mt-4">Разработчик</h4>
+                    <p>Проект разработан в рамках дипломной работы.</p>
+                    <p>Год: 2024</p>
+                    
+                    <hr>
+                    
+                    <h4>API Endpoints</h4>
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Метод</th>
+                                <th>URL</th>
+                                <th>Описание</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>POST</td>
+                                <td>/api/save_score</td>
+                                <td>Сохранить результат игры</td>
+                            </tr>
+                            <tr>
+                                <td>POST</td>
+                                <td>/api/add_friend</td>
+                                <td>Отправить запрос в друзья</td>
+                            </tr>
+                            <tr>
+                                <td>DELETE</td>
+                                <td>/api/delete_comment/&lt;id&gt;</td>
+                                <td>Удалить комментарий</td>
+                            </tr>
+                            <tr>
+                                <td>DELETE</td>
+                                <td>/api/delete_account</td>
+                                <td>Удалить аккаунт</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
