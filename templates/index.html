@@ -16,7 +16,7 @@
             {% if not current_user.is_authenticated %}
                 <div class="mt-4">
                     <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg me-2">
-                        <i class="bi bi-person-plus"></i> Начать играть
+                        <i class="bi bi-person-plus"></i> Зарегистрироваться?
                     </a>
                     <a href="{{ url_for('login') }}" class="btn btn-outline-primary btn-lg">
                         <i class="bi bi-box-arrow-in-right"></i> Войти
@@ -26,68 +26,45 @@
         </div>
     </div>
 
-    <!-- Карточки игр -->
-    <h2 class="text-center mb-4">Наши игры</h2>
-    <div class="row g-4">
-        <!-- Судоку -->
-        <div class="col-md-4">
-            <div class="card h-100 shadow-sm">
-                <div class="card-body text-center">
-                   <img src="{{ url_for('static', filename='images/sudoku.png') }}" alt="Судоку" style="width: 64px; height: 64px; object-fit: contain;">
-                    <h3 class="card-title mt-3">Судоку</h3>
-                    <p class="card-text text-muted">
-                        Классическая японская головоломка. Заполни сетку цифрами от 1 до 9.
-                    </p>
-                    {% if current_user.is_authenticated %}
-                        <a href="{{ url_for('play_game', game_name='sudoku') }}" class="btn btn-primary">
-                            <i class="bi bi-play"></i> Играть
-                        </a>
-                    {% else %}
-                        <button class="btn btn-secondary" disabled>Войдите чтобы играть</button>
-                    {% endif %}
-                </div>
+<div class="row mt-5 justify-content-center">
+    <div class="col-lg-10">
+        <div class="card about-card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="bi bi-info-circle">О проекте</i></h4>
             </div>
-        </div>
-        
-        <!-- Динозаврик -->
-        <div class="col-md-4">
-            <div class="card h-100 shadow-sm">
-                <div class="card-body text-center">
-                    <img src="{{ url_for('static', filename='images/phon_dino.png') }}" alt="Динозаврик">
-                    <h3 class="card-title mt-3">Динозаврик</h3>
-                    <p class="card-text text-muted">
-                        Прыгай через кактусы и бей рекорды в этой бесконечной игре.
-                    </p>
-                    {% if current_user.is_authenticated %}
-                        <a href="{{ url_for('play_game', game_name='dino') }}" class="btn btn-success">
-                            <i class="bi bi-play"></i> Играть
-                        </a>
-                    {% else %}
-                        <button class="btn btn-secondary" disabled>Войдите чтобы играть</button>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-        
-        <!-- Тетрис -->
-        <div class="col-md-4">
-            <div class="card h-100 shadow-sm">
-                <div class="card-body text-center">
-                   <img src="{{ url_for('static', filename='images/tetris.png') }}" alt="Тетрис">
-                    <h3 class="card-title mt-3">Тетрис</h3>
-                    <p class="card-text text-muted">
-                        Легендарная игра. Собирай линии и набирай очки.
-                    </p>
-                    {% if current_user.is_authenticated %}
-                        <a href="{{ url_for('play_game', game_name='tetris') }}" class="btn btn-danger">
-                            <i class="bi bi-play"></i> Играть
-                        </a>
-                    {% else %}
-                        <button class="btn btn-secondary" disabled>Войдите чтобы играть</button>
-                    {% endif %}
-                </div>
+            <div class="card-body">
+                    <p>Этот сайт — дипломный проект, разработанный студентом IT-колледжа. Цель — показать навыки:</p>
+                    <ul>
+                        <li>Разработка веб-приложений на Flask (Python)</li>
+                        <li>Проектирование базы данных MySQL</li>
+                        <li>Регистрация, авторизация и роли (пользователь/администратор)</li>
+                        <li>Интеграция игр и админ-панели с графиками</li>
+                    </ul>
+                    <p class="text-muted mb-0">Дипломник: Захар | Год: 2026</p>
             </div>
         </div>
     </div>
 </div>
+
+    <!-- Блок: Преимущества -->
+    <div class="row text-center mt-5">
+        <div class="col-12">
+            <h2 class="mb-4">Почему GamePlatform?</h2>
+        </div>
+        <div class="col-md-4">
+            <i class="bi bi-trophy fs-1 text-warning"></i>
+            <h5 class="mt-2">Система рейтингов</h5>
+            <p class="text-muted">Соревнуйся с друзьями и отслеживай свои рекорды.</p>
+        </div>
+        <div class="col-md-4">
+            <i class="bi bi-shield-lock fs-1 text-success"></i>
+            <h5 class="mt-2">Надёжная авторизация</h5>
+            <p class="text-muted">Твои данные под защитой, пароли хешируются.</p>
+        </div>
+        <div class="col-md-4">
+            <i class="bi bi-graph-up fs-1 text-info"></i>
+            <h5 class="mt-2">Админ-панель</h5>
+            <p class="text-muted">Управляй пользователями и смотри аналитику в графиках.</p>
+        </div>
+    </div>
 {% endblock %}

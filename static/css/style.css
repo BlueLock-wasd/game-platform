@@ -1,31 +1,9 @@
 /* ===== ОСНОВНЫЕ СТИЛИ ===== */
 body {
-    background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+    background: linear-gradient(135deg, #2e2d2d 0%, #29292e 50%, #2c2c2e 100%);
     min-height: 100vh;
     margin: 0;
-    color: #0066ff;
-}
-
-/* Карточки игр на главной */
-.game-card {
-    transition: transform 0.3s, box-shadow 0.3s;
-    border: none;
-    border-radius: 15px;
-    overflow: hidden;
-}
-
-.game-card:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 20px 30px rgba(0,0,0,0.2) !important;
-}
-
-.game-card .card-body {
-    padding: 2rem;
-}
-
-.game-icon {
-    font-size: 4rem;
-    margin-bottom: 1rem;
+    color: #f0f0f0
 }
 
 /* ===== СТИЛИ ДЛЯ ИГР ===== */
@@ -389,7 +367,7 @@ body {
 
 /* ===== Переопределение цвета текста ===== */
 .text-muted {
-  color: #619dec !important;
+  color: #6e9eda !important;
 }
 
 /* Стиль для карточек игр */
@@ -402,6 +380,50 @@ body {
 
 .game-card:hover, .card:hover {
     transform: translateY(-5px);
-    background: rgba(125, 100, 190, 0.95);
+    background: rgb(239 238 238 / 0.95);
     box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+}
+
+/* Стиль для блока О проекте (отключаем прыжок и скругление) */
+.about-card {
+    border-radius: 0 !important;
+    transform: none !important;
+    background: rgba(255, 255, 255, 0.9) !important;
+}
+.about-card, .card.about-card {
+    background: rgba(255, 255, 255, 0.2) !important;
+    backdrop-filter: blur(12px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+}
+
+/* Отключаем эффекты наведения для карточек документации */
+.no-hover:hover {
+    transform: none !important;
+    background: inherit !important;
+    box-shadow: none !important;
+}
+
+/* Текст логотипа */
+.logo-text{
+    color: #f3ffff;
+    margin-top: 10px;
+}
+
+.navbar-dark .navbar-brand,
+.navbar-dark .navbar-nav .nav-link {
+    color: #191616 !important;  /* золотой */
+}
+
+.navbar-dark .navbar-brand:hover,
+.navbar-dark .navbar-nav .nav-link:hover {
+    color: #ffffff !important;  /* белый при наведении */
+}
+
+/* Настройки круговой диаграммы */
+#gameRecordsChart {
+    max-width: 400px;      /* максимальная ширина */
+    max-height: 400px;     /* максимальная высота */
+    margin: 0 auto;        /* центр */
+    display: block;
 }

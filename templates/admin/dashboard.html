@@ -4,46 +4,272 @@
 
 {% block content %}
 <div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2><i class="bi bi-shield-lock"></i> Админ панель</h2>
-        <a href="{{ url_for('admin_users') }}" class="btn btn-primary">
-            <i class="bi bi-people"></i> Управление пользователями
-        </a>
-    </div>
-    
     <div class="row">
-        <div class="col-md-3">
-            <div class="card text-white bg-primary">
-                <div class="card-body">
-                    <h5>Пользователи</h5>
-                    <h2>{{ users|length }}</h2>
+        <div class="col-12">
+
+            <!-- Заголовок -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="bi bi-shield-lock"></i> Админ панель</h2>
+                <span class="badge bg-primary">Всего пользователей: {{ users|length }}</span>
+            </div>
+
+            <!-- Статистика -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card text-white bg-primary">
+                        <div class="card-body">
+                            <h5 class="card-title">Пользователи</h5>
+                            <h2>{{ users|length }}</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-white bg-success">
+                        <div class="card-body">
+                            <h5 class="card-title">Админы</h5>
+                            <h2>{{ users|selectattr('role', 'equalto', 'admin')|list|length }}</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-white bg-info">
+                        <div class="card-body">
+                            <h5 class="card-title">Всего игр</h5>
+                            <h2>{{ total_games }}</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-white bg-warning">
+                        <div class="card-body">
+                            <h5 class="card-title">Активных сегодня</h5>
+                            <h2>{{ active_today }}</h2>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-white bg-success">
+
+            <!-- Поиск -->
+            <div class="card mb-4">
                 <div class="card-body">
-                    <h5>Админы</h5>
-                    <h2>{{ admins_count }}</h2>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" id="searchInput" class="form-control" placeholder="Поиск по имени или email..." onkeyup="searchUsers()">
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-white bg-info">
-                <div class="card-body">
-                    <h5>Всего игр</h5>
-                    <h2>{{ total_games }}</h2>
+
+            <!-- Таблица пользователей -->
+            <div class="card shadow">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0"><i class="bi bi-people"></i> Список пользователей</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0" id="usersTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Аватар</th>
+                                    <th>Имя</th>
+                                    <th>Email</th>
+                                    <th>Роль</th>
+                                    <th>Дата регистрации</th>
+                                    <th>Последний вход</th>
+                                    <th>Серия</th>
+                                    <th>Игр сыграно</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in users %}
+                                <tr class="user-row">
+                                    <td><strong>#{{ user.id }}</strong></td>
+                                    <td>
+                                        <img src="{{ url_for('static', filename='uploads/' + (user.avatar_url if user.avatar_url else 'default.jpg')) }}"
+                                             class="rounded-circle" width="40" height="40" style="object-fit: cover;">
+                                    </td>
+                                    <td>
+                                        <a href="{{ url_for('profile', username=user.username) }}" class="fw-bold text-decoration-none">
+                                            {{ user.username }}
+                                        </a>
+                                    </td>
+                                    <td>{{ user.email }}</td>
+                                    <td>
+                                        {% if user.role == 'admin' %}
+                                            <span class="badge bg-danger">Админ</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Пользователь</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ user.created_at.strftime('%d.%m.%Y') }}</td>
+                                    <td>{{ user.last_login_date }}</td>
+                                    <td>
+                                        {% if user.streak %}
+                                            <span class="badge bg-success">{{ user.streak.current_streak }} дней</span>
+                                            <small class="text-muted">(рекорд: {{ user.streak.max_streak }})</small>
+                                        {% else %}
+                                            <span class="badge bg-secondary">0</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% set game_count = user.game_sessions.count() %}
+                                        <span class="badge bg-info">{{ game_count }}</span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{{ url_for('profile', username=user.username) }}" class="btn btn-outline-primary" title="Профиль">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+
+                                            {% if user.role == 'admin' and user.id != current_user.id %}
+                                                <a href="{{ url_for('toggle_admin', user_id=user.id) }}" class="btn btn-outline-warning" title="Убрать админа">
+                                                    <i class="bi bi-person-down"></i>
+                                                </a>
+                                            {% elif user.role != 'admin' %}
+                                                <a href="{{ url_for('toggle_admin', user_id=user.id) }}" class="btn btn-outline-success" title="Сделать админом">
+                                                    <i class="bi bi-person-up"></i>
+                                                </a>
+                                            {% endif %}
+
+                                            {% if user.id != current_user.id %}
+                                                <a href="{{ url_for('delete_user', user_id=user.id) }}" class="btn btn-outline-danger" title="Удалить"
+                                                   onclick="return confirm('Точно удалить пользователя {{ user.username }}?')">
+                                                    <i class="bi bi-trash"></i>
+                                                </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-white bg-warning">
-                <div class="card-body">
-                    <h5>Заметок</h5>
-                    <h2>{{ total_notes }}</h2>
+
+            <!-- Статистика по играм -->
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="mb-0"><i class="bi bi-bar-chart"></i> Топ игроков</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="topPlayersChart" width="400" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0"><i class="bi bi-trophy"></i> Рекорды по играм</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="gameRecordsChart" width="400" height="200"></canvas>
+                        </div>
+                    </div>
                 </div>
             </div>
+
         </div>
     </div>
 </div>
+
+<!-- Chart.js для графиков -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0/dist/chartjs-plugin-datalabels.min.js"></script>
+<script>
+// Поиск по таблице
+function searchUsers() {
+    let input = document.getElementById('searchInput');
+    let filter = input.value.toLowerCase();
+    let rows = document.getElementsByClassName('user-row');
+
+    for(let i = 0; i < rows.length; i++) {
+        let name = rows[i].getElementsByTagName('td')[2].innerText.toLowerCase();
+        let email = rows[i].getElementsByTagName('td')[3].innerText.toLowerCase();
+
+        if(name.includes(filter) || email.includes(filter)) {
+            rows[i].style.display = '';
+        } else {
+            rows[i].style.display = 'none';
+        }
+    }
+}
+
+// График топ игроков
+fetch('/api/top_players')
+    .then(response => response.json())
+    .then(data => {
+        new Chart(document.getElementById('topPlayersChart'), {
+            type: 'bar',
+            data: {
+                labels: data.names,
+                datasets: [{
+                    label: 'Всего игр',
+                    data: data.counts,
+                    backgroundColor: 'rgb(22 163 237 / 0.5)',
+                    borderColor: 'rgb(41 92 170)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+    });
+
+// График рекордов по играм
+fetch('/api/game_stats')
+    .then(response => response.json())
+    .then(data => {
+        // Общее количество партий
+        let total = data.sudoku + data.dino + data.tetris;
+
+        new Chart(document.getElementById('gameRecordsChart'), {
+            type: 'pie',
+            data: {
+                labels: ['Судоку', 'Динозаврик', 'Тетрис'],
+                datasets: [{
+                    data: [data.sudoku, data.dino, data.tetris],
+                    backgroundColor: [
+                        'rgba(54, 162, 235, 0.5)',
+                        'rgba(75, 192, 192, 0.5)',
+                        'rgba(255, 99, 132, 0.5)'
+                    ],
+                    borderColor: [
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(255, 99, 132, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    // ===== ВОТ ЭТОТ БЛОК НУЖНО ДОБАВИТЬ =====
+                    datalabels: {
+                        formatter: (value, context) => {
+                            let percentage = ((value / total) * 100).toFixed(1);
+                            return `${percentage}%`;
+                        },
+                        color: '#fff',
+                        backgroundColor: 'rgba(0,0,0,0.6)',
+                        borderRadius: 4,
+                        padding: { left: 5, right: 5, top: 3, bottom: 3 },
+                        font: { weight: 'bold', size: 12 }
+                    },
+                    // ===== КОНЕЦ БЛОКА =====
+                    tooltip: { enabled: true }
+                }
+            },
+            // ===== И ЭТУ СТРОКУ (активация плагина) =====
+            plugins: [ChartDataLabels]
+        });
+    });
+</script>
 {% endblock %}
