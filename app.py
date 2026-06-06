@@ -77,56 +77,14 @@ def update_streak(user):
         db.session.commit()
 
 
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 # Маршруты
 @app.route('/')
 def index():
     games = Game.query.all()
     return render_template('index.html', games=games)
-
-
-@app.route('/games')
-@login_required
-def games():
-    games = Game.query.all()
-    return render_template('games.html', games=games)
-
-
-@app.route('/game/<game_name>')
-@login_required
-def play_game(game_name):
-    game = Game.query.filter_by(name=game_name).first_or_404()
-    return render_template(f'games/{game_name}.html', game=game)
-
-
-@app.route('/api/save_score', methods=['POST'])
-@login_required
-def save_score():
-   try:
-       data = request.get_json()
-
-       if not data:
-           return jsonify({'success': False, 'message': 'Не удалось получить данные о результате'}), 400
-
-       game_name = data.get('game')
-       if not game_name:
-           return jsonify({'success': False, 'message': f'Игра "{game_name}" не найдена'}), 404
-
-       session = GameSession(
-           user_id=current_user.id,
-           game_id=game.id,
-           score=data.get('score', 0)
-       )
-       db.session.add(session)
-       db.session.commit()
-
-       return jsonify({'success': False, 'message': 'Результат сохранён!'})
-
-   except IntegrityError:
-       db.session.rollback()
-       return jsonify({'success': False, 'message': 'Ошибка базы данных. Попробуйте позже.'}), 500
-   except Exception as e:
-       db.session.rollback()
-       return jsonify({'success': False, 'message': 'Что-то пошло не так. Попробуйте ещё раз.'}), 500
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -170,14 +128,6 @@ def register():
         return redirect(url_for('login'))
 
     return render_template('register.html', form=form)
-
-
-@app.route('/logout')
-@login_required
-def logout():
-    logout_user()
-    flash('Вы вышли из системы', 'info')
-    return redirect(url_for('index'))
 
 
 @app.route('/admin')
@@ -233,7 +183,6 @@ def profile(username):
 
     # Серия заходов
     streak = LoginStreak.query.filter_by(user_id=user.id).first()
-
     # Заметки для этого пользователя
     notes = Note.query.filter_by(user_id=user.id).order_by(Note.created_at.desc()).all()
 
@@ -260,6 +209,63 @@ def settings():
     return render_template('settings.html', form=form)
 
 
+@app.route('/notes')
+@login_required
+def notes_list():
+    notes = current_user.user_notes.order_by(Note.created_at.desc()).all()  # ← изменено
+    return render_template('notes.html', notes=notes)
+
+
+@app.route('/docs')
+def docs():
+    return render_template('docs.html')
+
+
+@app.route('/games')
+@login_required
+def games():
+    games = Game.query.all()
+    return render_template('games.html', games=games)
+
+
+@app.route('/game/<game_name>')
+@login_required
+def play_game(game_name):
+    game = Game.query.filter_by(name=game_name).first_or_404()
+    return render_template(f'games/{game_name}.html', game=game)
+
+
+@app.route('/api/save_score', methods=['POST'])
+@login_required
+def save_score():
+   try:
+       data = request.get_json()
+
+       if not data:
+           return jsonify({'success': False, 'message': 'Не удалось получить данные о результате'}), 400
+
+       game_name = data.get('game')
+       if not game_name:
+           return jsonify({'success': False, 'message': f'Игра "{game_name}" не найдена'}), 404
+
+       session = GameSession(
+           user_id=current_user.id,
+           game_id=game.id,
+           score=data.get('score', 0)
+       )
+       db.session.add(session)
+       db.session.commit()
+
+       return jsonify({'success': False, 'message': 'Результат сохранён!'})
+
+   except IntegrityError:
+       db.session.rollback()
+       return jsonify({'success': False, 'message': 'Ошибка базы данных. Попробуйте позже.'}), 500
+   except Exception as e:
+       db.session.rollback()
+       return jsonify({'success': False, 'message': 'Что-то пошло не так. Попробуйте ещё раз.'}), 500
+
+
 @app.route('/admin/users')
 @admin_required
 def admin_users():
@@ -267,6 +273,7 @@ def admin_users():
     total_games = GameSession.query.count()
     active_today = User.query.filter_by(last_login_date=date.today()).count()
     return render_template('admin/users.html', users=users, total_games=total_games, active_today=active_today)
+
 
 @app.route('/admin/toggle/<int:user_id>')
 @admin_required
@@ -278,6 +285,7 @@ def toggle_admin(user_id):
         flash(f'Роль пользователя {user.username} изменена', 'success')
     return redirect(url_for('admin_users'))
 
+
 @app.route('/admin/delete/<int:user_id>')
 @admin_required
 def delete_user(user_id):
@@ -288,6 +296,7 @@ def delete_user(user_id):
         flash(f'Пользователь {user.username} удален', 'success')
     return redirect(url_for('admin_users'))
 
+
 @app.route('/api/top_players')
 @admin_required
 def top_players():
@@ -297,6 +306,7 @@ def top_players():
         'names': [u.username for u in top],
         'counts': [u.game_sessions.count() for u in top]
     })
+
 
 @app.route('/api/game_stats')
 @admin_required
@@ -323,15 +333,6 @@ def delete_note(note_id):
 
 # Настройки для загрузки файлов
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
-
-
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-
-@app.route('/docs')
-def docs():
-    return render_template('docs.html')
 
 
 @app.route('/upload_avatar', methods=['POST'])
@@ -365,12 +366,6 @@ def upload_avatar():
 
     return redirect(url_for('settings'))
 
-@app.route('/notes')
-@login_required
-def notes_list():
-    notes = current_user.user_notes.order_by(Note.created_at.desc()).all()  # ← изменено
-    return render_template('notes.html', notes=notes)
-
 
 @app.route('/api/delete_account', methods=['DELETE'])
 @login_required
@@ -382,6 +377,13 @@ def delete_account():
     logout_user()
     return jsonify({'success': True})
 
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    flash('Вы вышли из системы', 'info')
+    return redirect(url_for('index'))
 
 if __name__ == '__main__':
     app.run(debug=True)
