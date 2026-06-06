@@ -367,6 +367,25 @@ def upload_avatar():
     return redirect(url_for('settings'))
 
 
+@app.route('/api/top_scores')
+def top_scores():
+    from models import db, User, GameSession, Game
+    # Делаем сложный запрос: для каждого пользователя — его лучший результат с названием игры
+    top = db.session.query(
+        User.username,
+        GameSession.score,
+        Game.display_name
+    ).join(GameSession, User.id == GameSession.user_id
+           ).join(Game, GameSession.game_id == Game.id
+                  ).order_by(GameSession.score.desc()
+                             ).limit(5).all()
+
+    return jsonify([{
+        'username': u[0],
+        'score': u[1],
+        'game_name': u[2]
+    } for u in top])
+
 @app.route('/api/delete_account', methods=['DELETE'])
 @login_required
 def delete_account():

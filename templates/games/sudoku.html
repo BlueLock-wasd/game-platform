@@ -11,7 +11,10 @@
                     <h3><i class="bi bi-grid-3x3-gap-fill"></i> Судоку</h3>
                 </div>
                 <div class="card-body text-center">
-
+                    <div class="alert alert-secondary mt-3">
+                        <i class="bi bi-lightbulb"></i><strong>Совет дня:</strong>
+                        <span id="game-tip">Загрузка</span>
+                    </div>
                     <!-- ИГРОВОЕ ПОЛЕ -->
                     <div id="sudoku-grid" class="d-inline-block mb-4"></div>
 
@@ -22,7 +25,7 @@
                         <button class="btn btn-success" id="checkBtn" onclick="checkSudoku()">
                             <i class="bi bi-check-circle"></i> Проверить
                         </button>
-                        <button class="btn btn-warning" onclick="newGame()">
+                        <button class="btn btn-warning" id="newGame" onclick="newGame()">
                             <i class="bi bi-dice"></i> Новая игра
                         </button>
                         <button class="btn btn-info" onclick="solveSudoku()">
@@ -42,6 +45,28 @@
 </div>
 
 <script>
+    // Советы для игры Судоку
+    const sudokuTips = [
+        "Начинай с чисел, которые встречаются чаще всего.",
+        "Используй карандашные заметки, чтобы не забывать варианты.",
+        "Если застрял — вернись к началу и перепроверь строки и столбцы."
+    ];
+
+    // Функция для показа случайного совета
+    function showRandomTip() {
+        const randomIndex = Math.floor(Math.random() * sudokuTips.length);
+        const tipElement = document.getElementById("game-tip");
+        if (tipElement) {
+            tipElement.textContent = sudokuTips[randomIndex];
+        }
+    }
+
+    // Показываем совет при загрузке страницы
+    window.onload = function() {
+        showRandomTip();
+        // Здесь остальной код инициализации игры (например, startGame)
+    };
+
     let currentSize = 4;
     let grid = [];
     let solution = [];
@@ -206,7 +231,7 @@
     function newGame() {
         let gameData;
 
-        switch(currentSize) {
+        switch (currentSize) {
             case 4:
                 gameData = generateSudoku4x4();
                 break;
@@ -214,7 +239,8 @@
                 gameData = generateSudoku6x6();
                 break;
         }
-
+        showRandomTip();
+        
         grid = gameData.puzzle;
         solution = gameData.solution;
         score = 0;

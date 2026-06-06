@@ -11,7 +11,10 @@
                     <h3><i class="bi bi-stack"></i> Тетрис</h3>
                 </div>
                 <div class="card-body text-center">
-
+                    <div class="alert alert-secondary mt-1">
+                        <i class="bi bi-lightbulb"></i><strong>Совет дня:</strong>
+                        <span id="game-tip">Загрузка</span>
+                    </div>
                     <!-- Игровое поле -->
                     <canvas id="tetrisCanvas" width="300" height="600" style="border:1px solid #000;"></canvas>
 
@@ -40,6 +43,23 @@
 </div>
 
 <script>
+    // Советы для игры Тетрис
+    const tetrisTips = [
+        "Поворачивай фигуры до того, как они упадут.",
+        "Собирай 4 линии за раз — это даёт больше очков.",
+        "Не заполняй случайно центральный столбец — это самая важная зона."
+    ];
+
+        // Функция для показа случайного совета
+    function showRandomTip() {
+        const randomIndex = Math.floor(Math.random() * tetrisTips.length);
+        const tipElement = document.getElementById("game-tip");
+        if (tipElement) {
+            tipElement.textContent = tetrisTips[randomIndex];
+        }
+    }
+
+
     let canvas, ctx;
     let cols = 10;
     let rows = 20;
@@ -90,6 +110,7 @@
         document.getElementById('tetrisScore').textContent = '0';
         document.getElementById('tetrisLevel').textContent = '1';
         updatePauseButton();
+        showRandomTip();
 
         // Генерируем первую фигуру и следующую
         getRandomPiece();
@@ -152,7 +173,7 @@
                     ctx.fillRect(j * cellSize, i * cellSize, cellSize - 1, cellSize - 1);
                 } else {
                     // Рисуем пустые клетки для красоты
-                    ctx.strokeStyle = '#ddd';
+                    ctx.strokeStyle = '#6e6d6d';
                     ctx.strokeRect(j * cellSize, i * cellSize, cellSize, cellSize);
                 }
             }
@@ -326,5 +347,6 @@
     });
     
     window.onload = initTetris;
+        showRandomTip();
 </script>
 {% endblock %}

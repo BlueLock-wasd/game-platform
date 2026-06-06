@@ -11,7 +11,10 @@
                     <h3><i class="bi bi-dragon"></i> Динозаврик</h3>
                 </div>
                 <div class="card-body text-center">
-                    
+                    <div class="alert alert-secondary mt-1">
+                        <i class="bi bi-lightbulb"></i><strong>Совет дня:</strong>
+                        <span id="game-tip">Загрузка</span>
+                    </div>
                     <!-- Canvas для игры -->
                     <canvas id="gameCanvas" width="800" height="300" style="border:1px solid #000; background: #f0f0f0; width: 100%; height: auto;"></canvas>
 
@@ -37,6 +40,20 @@
 </div>
 
 <script>
+    // Советы для игры Динозаврик
+    const dinoTips = [
+        "Прыгай в последний момент перед препятствием.",
+        "Чем дольше бежишь, тем быстрее скорость — будь готов.",
+        "Следи за ритмом: кактусы появляются через равные промежутки."
+    ];
+
+    function showRandomTip() {
+    const randomIndex = Math.floor(Math.random() * dinoTips.length);
+    const tipElement = document.getElementById("game-tip");
+    if (tipElement) {
+        tipElement.textContent = dinoTips[randomIndex];
+    }
+}
     let canvas, ctx;
     let dino = { x: 50, y: 200, width: 40, height: 40, vy: 0, gravity: 0.5, jumpPower: -10 };
     let obstacles = [];
@@ -78,6 +95,7 @@
         }
     }
 
+
     function startGame() {
         if(!gameRunning) {
             gameRunning = true;
@@ -90,8 +108,10 @@
             if (gameLoopId) cancelAnimationFrame(gameLoopId);
             updateGame();
             console.log('Game started');
+                    showRandomTip();
         }
     }
+
 
     function stopGame() {
         gameRunning = false;
@@ -222,6 +242,8 @@
     // Запускаем когда страница загрузится
     window.onload = function() {
         initCanvas();
+        showRandomTip();
     };
+
 </script>
 {% endblock %}

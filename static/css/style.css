@@ -3,7 +3,7 @@ body {
     background: linear-gradient(135deg, #2e2d2d 0%, #29292e 50%, #2c2c2e 100%);
     min-height: 100vh;
     margin: 0;
-    color: #f0f0f0
+    color: #0091fd
 }
 
 /* ===== СТИЛИ ДЛЯ ИГР ===== */
@@ -426,4 +426,17 @@ body {
     max-height: 400px;     /* максимальная высота */
     margin: 0 auto;        /* центр */
     display: block;
+}
+
+/* Ссылки на профили */
+.no-link-style {
+    color: inherit;           /* наследует цвет от родителя (не синий) */
+    text-decoration: none;    /* убираем подчёркивание */
+}
+
+.no-link-style:hover {
+    color: inherit;           /* при наведении цвет не меняется */
+    text-decoration: none;    /* подчёркивание не появляется */
+    cursor: pointer;          /* но курсор остаётся как у ссылки */
+
 }

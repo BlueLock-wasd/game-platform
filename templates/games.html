@@ -29,4 +29,53 @@
         {% endfor %}
     </div>
 </div>
+
+<div class="container">
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="bi bi-trophy"></i> ТОП-5 рекордов</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Игрок</th>
+                                <th>Игра</th>
+                                <th>Рекорд</th>
+                            </tr>
+                        </thead>
+                        <tbody id="top-scores-list">
+                            <tr><td colspan="3" class="text-center">Загрузка...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    fetch('/api/top_scores')
+    .then(response => response.json())
+    .then(data => {
+        const tbody = document.getElementById('top-scores-list');
+        tbody.innerHTML = '';
+        data.forEach((item, index) => {
+            const row = `<tr>
+                <td>${index + 1}</td>
+                <td><a href="/profile/${item.username}" class="no-link-style">${item.username}</a></td>
+                <td>${item.game_name}</td>
+                <td>${item.score}</td>
+            </tr>`;
+            tbody.innerHTML += row;
+        });
+    })
+    .catch(error => {
+        console.error('Ошибка загрузки рекордов:', error);
+        document.getElementById('top-scores-list').innerHTML = '<tr><td colspan="4" class="text-center text-danger">Не удалось загрузить рекорды</td></tr>';
+    });
+</script>
 {% endblock %}
