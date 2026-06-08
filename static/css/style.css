@@ -1,6 +1,6 @@
 /* ===== ОСНОВНЫЕ СТИЛИ ===== */
 body {
-    background: linear-gradient(135deg, #2e2d2d 0%, #29292e 50%, #2c2c2e 100%);
+    background: radial-gradient(circle at center, #030F2C 0%, #01040D 100%);
     min-height: 100vh;
     margin: 0;
     color: #0091fd

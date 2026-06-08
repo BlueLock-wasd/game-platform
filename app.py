@@ -5,7 +5,7 @@ from datetime import date, datetime, timedelta
 from functools import wraps
 import os
 from werkzeug.utils import secure_filename
-
+from sqlalchemy.exc import IntegrityError
 from config import Config
 from models import db, User, Game, GameSession, LoginStreak, Note
 from forms import LoginForm, RegisterForm, ChangePasswordForm, NoteForm
@@ -149,17 +149,17 @@ def admin_panel():
 def profile(username):
     user = User.query.filter_by(username=username).first_or_404()
 
-    # Форма заметки
+    # Форма комментария
     form = NoteForm()
     if form.validate_on_submit() and current_user.is_authenticated:
         note = Note(
-            user_id=user.id,  # кому заметка
+            user_id=user.id,  # кому комментарий
             author_id=current_user.id,  # кто написал
             content=form.content.data
         )
         db.session.add(note)
         db.session.commit()
-        flash('Заметка добавлена', 'success')
+        flash('Комментарий добавлен', 'success')
         return redirect(url_for('profile', username=username))
 
     # Статистика по играм
@@ -183,7 +183,7 @@ def profile(username):
 
     # Серия заходов
     streak = LoginStreak.query.filter_by(user_id=user.id).first()
-    # Заметки для этого пользователя
+    # Комментарии для этого пользователя
     notes = Note.query.filter_by(user_id=user.id).order_by(Note.created_at.desc()).all()
 
     return render_template('profile.html',
@@ -238,32 +238,34 @@ def play_game(game_name):
 @app.route('/api/save_score', methods=['POST'])
 @login_required
 def save_score():
-   try:
-       data = request.get_json()
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'success': False, 'message': 'Нет данных'}), 400
+        game_name = data.get('game')
+        if not game_name:
+            return jsonify({'success': False, 'message': 'Не указана игра'}), 400
 
-       if not data:
-           return jsonify({'success': False, 'message': 'Не удалось получить данные о результате'}), 400
+        # НАХОДИМ ИГРУ В БАЗЕ ДАННЫХ
+        game = Game.query.filter_by(name=game_name).first()
+        if not game:
+            return jsonify({'success': False, 'message': f'Игра "{game_name}" не найдена'}), 404
 
-       game_name = data.get('game')
-       if not game_name:
-           return jsonify({'success': False, 'message': f'Игра "{game_name}" не найдена'}), 404
-
-       session = GameSession(
-           user_id=current_user.id,
-           game_id=game.id,
-           score=data.get('score', 0)
-       )
-       db.session.add(session)
-       db.session.commit()
-
-       return jsonify({'success': False, 'message': 'Результат сохранён!'})
-
-   except IntegrityError:
-       db.session.rollback()
-       return jsonify({'success': False, 'message': 'Ошибка базы данных. Попробуйте позже.'}), 500
-   except Exception as e:
-       db.session.rollback()
-       return jsonify({'success': False, 'message': 'Что-то пошло не так. Попробуйте ещё раз.'}), 500
+        # СОЗДАЁМ ЗАПИСЬ О РЕЗУЛЬТАТЕ
+        session = GameSession(
+            user_id=current_user.id,
+            game_id=game.id,
+            score=data.get('score', 0)
+        )
+        db.session.add(session)
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Результат сохранён!'})
+    except IntegrityError:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': 'Ошибка базы данных'}), 500
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': f'Ошибка: {str(e)}'}), 500
 
 
 @app.route('/admin/users')
@@ -370,7 +372,6 @@ def upload_avatar():
 @app.route('/api/top_scores')
 def top_scores():
     from models import db, User, GameSession, Game
-    # Делаем сложный запрос: для каждого пользователя — его лучший результат с названием игры
     top = db.session.query(
         User.username,
         GameSession.score,

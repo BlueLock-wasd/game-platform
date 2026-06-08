@@ -251,7 +251,6 @@ fetch('/api/game_stats')
             options: {
                 responsive: true,
                 plugins: {
-                    // ===== ВОТ ЭТОТ БЛОК НУЖНО ДОБАВИТЬ =====
                     datalabels: {
                         formatter: (value, context) => {
                             let percentage = ((value / total) * 100).toFixed(1);
@@ -263,11 +262,10 @@ fetch('/api/game_stats')
                         padding: { left: 5, right: 5, top: 3, bottom: 3 },
                         font: { weight: 'bold', size: 12 }
                     },
-                    // ===== КОНЕЦ БЛОКА =====
                     tooltip: { enabled: true }
                 }
             },
-            // ===== И ЭТУ СТРОКУ (активация плагина) =====
+            // ===== (активация плагина) =====
             plugins: [ChartDataLabels]
         });
     });
