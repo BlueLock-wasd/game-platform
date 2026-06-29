@@ -60,7 +60,7 @@ class Note(db.Model):
     __tablename__ = 'notes'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)  # кому заметка
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)  # кому комменатарий
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)  # кто написал
     content = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)

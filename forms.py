@@ -33,8 +33,8 @@ class ChangePasswordForm(FlaskForm):
     submit = SubmitField('Сменить пароль')
 
 class NoteForm(FlaskForm):
-    content = TextAreaField('Заметка', validators=[DataRequired(), Length(max=500)])
-    submit = SubmitField('Оставить заметку')
+    content = TextAreaField('Комментарий', validators=[DataRequired(), Length(max=500)])
+    submit = SubmitField('Оставить комментарий')
 
 
 class FriendRequestForm(FlaskForm):

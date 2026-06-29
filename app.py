@@ -80,6 +80,9 @@ def update_streak(user):
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+# Настройки для загрузки файлов
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
 # Маршруты
 @app.route('/')
 def index():
@@ -137,12 +140,14 @@ def admin_panel():
     admins_count = User.query.filter_by(role='admin').count()
     total_games = GameSession.query.count()
     total_notes = Note.query.count()
-
+    active_today = User.query.filter_by(last_login_date=date.today()).count()
+    
     return render_template('admin/dashboard.html',
                            users=users,
                            admins_count=admins_count,
                            total_games=total_games,
-                           total_notes=total_notes)
+                           total_notes=total_notes,
+                           active_today = active_today)
 
 
 @app.route('/profile/<username>', methods=['GET', 'POST'])
@@ -333,10 +338,6 @@ def delete_note(note_id):
     return jsonify({'success': False, 'message': 'Нет прав'}), 403
 
 
-# Настройки для загрузки файлов
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
-
-
 @app.route('/upload_avatar', methods=['POST'])
 @login_required
 def upload_avatar():
@@ -385,7 +386,7 @@ def top_scores():
         'username': u[0],
         'score': u[1],
         'game_name': u[2]
-    } for u in top])
+    } for u in top])    
 
 @app.route('/api/delete_account', methods=['DELETE'])
 @login_required

@@ -2,8 +2,6 @@
 
 Игровая веб-платформа с тремя классическими играми (Судоку, Динозаврик, Тетрис), системой авторизации, рейтингов, административной панелью и социальными функциями.
 
-Дипломный проект студента IT-колледжа.
-
 ---
 
 ## 🚀 Технологии
@@ -11,7 +9,7 @@
 - **Backend**: Python 3.12, Flask 2.3.3, Flask-Login, Flask-SQLAlchemy
 - **База данных**: MySQL 8.0, SQLAlchemy ORM
 - **Frontend**: HTML5, CSS3, Bootstrap 5, JavaScript (ES6), Chart.js
-- **Инструменты**: Git, GitHub, ERwin, Draw.io
+- **Инструменты**: Git, GitHub, ERwin, Draw.io, BPwin
 
 ---
 
@@ -46,29 +44,41 @@
 
 ## 📸 Скриншоты
 
+### Главная страница до авторизации
+![Вход](screenshots/main_reg_auth.png)
+
 ### Главная страница
 ![Главная страница](screenshots/main.png)
 
 ### Страница регистрации
 ![Регистрация](screenshots/register.png)
 
-### Страница входа
-![Вход](screenshots/login.png)
-
 ### Страница со списком игр и таблица рекордов
-![Список игр](screenshots/games.png)
+![Список игр](screenshots/main_games.png)
 
 ### Профиль пользователя
 ![Профиль](screenshots/profile.png)
 
 ### Игровой процесс «Тетрис»
-![Тетрис](screenshots/tetris.png)
+![Тетрис](screenshots/tetris_game.png)
 
-### Админ-панель – управление пользователями
-![Админ-панель (пользователи)](screenshots/admin_users.png)
+### Игровой процесс «Судоку»
+![Судоку](screenshots/sudo_game.png)
+
+### Игровой процесс «Динозаврик»
+![Динозаврик](screenshots/dino_game.png)
+
+### Админ-панель 
+![Админ-панель](screenshots/admin_panel.png)
 
 ### Админ-панель – графики
-![Админ-панель (графики)](screenshots/admin_charts.png)
+![Профиль_пользователя](screenshots/profile.png)
+
+### Настройки
+![Настройки](screenshots/settings.png)
+
+### Документация
+![Документация](screenshots/docs.png)
 
 ---
 
@@ -116,5 +126,5 @@ game-platform/
 └── README.md              # этот файл
 
 📄 Лицензия
-Дипломный проект. Автор: Захар (BlueLock-wasd)
+Автор: Захар (BlueLock-wasd)
 Последнее обновление: июнь 2026 г.

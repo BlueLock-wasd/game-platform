@@ -1,9 +1,9 @@
 /* ===== ОСНОВНЫЕ СТИЛИ ===== */
 body {
-    background: radial-gradient(circle at center, #030F2C 0%, #01040D 100%);
+    background: radial-gradient(circle at center, #06174a 0%, #060a15 100%);
     min-height: 100vh;
     margin: 0;
-    color: #0091fd
+    color: #d6ac16
 }
 
 /* ===== СТИЛИ ДЛЯ ИГР ===== */
@@ -114,13 +114,13 @@ body {
     height: 120px;
     border-radius: 50%;
     object-fit: cover;
-    border: 4px solid #0d6efd;
+    border: 4px solid #000000;
     box-shadow: 0 5px 15px rgba(13, 110, 253, 0.3);
 }
 
 .streak-badge {
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    color: white;
+    background: linear-gradient(135deg, #3d6fdc 0%, #ed1a2a 100%);
+    color: #040303;
     padding: 0.5rem 1.5rem;
     border-radius: 50px;
     font-weight: bold;
@@ -367,7 +367,7 @@ body {
 
 /* ===== Переопределение цвета текста ===== */
 .text-muted {
-  color: #6e9eda !important;
+  color: #f66565 !important;
 }
 
 /* Стиль для карточек игр */
@@ -412,7 +412,7 @@ body {
 
 .navbar-dark .navbar-brand,
 .navbar-dark .navbar-nav .nav-link {
-    color: #191616 !important;  /* золотой */
+    color: #333131 !important;
 }
 
 .navbar-dark .navbar-brand:hover,
@@ -422,21 +422,21 @@ body {
 
 /* Настройки круговой диаграммы */
 #gameRecordsChart {
-    max-width: 400px;      /* максимальная ширина */
-    max-height: 400px;     /* максимальная высота */
-    margin: 0 auto;        /* центр */
+    max-width: 400px;
+    max-height: 400px;
+    margin: 0 auto;
     display: block;
 }
 
 /* Ссылки на профили */
 .no-link-style {
-    color: inherit;           /* наследует цвет от родителя (не синий) */
-    text-decoration: none;    /* убираем подчёркивание */
+    color: inherit;
+    text-decoration: none;
 }
 
 .no-link-style:hover {
-    color: inherit;           /* при наведении цвет не меняется */
-    text-decoration: none;    /* подчёркивание не появляется */
-    cursor: pointer;          /* но курсор остаётся как у ссылки */
+    color: inherit;
+    text-decoration: none;
+    cursor: pointer;
 
 }
