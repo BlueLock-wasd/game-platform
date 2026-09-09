@@ -99,14 +99,22 @@ venv\Scripts\activate         # Windows
 3. Установить зависимости
 pip install -r requirements.txt
 
-4. Настроить базу данных MySQL
-Создать базу game_platform
-Проверить/отредактировать config.py (логин, пароль)
+4. Создать файл `.env` в корне проекта
+Создай файл `.env` и добавь в него:
+SECRET_KEY=сгенерируй_секретный_ключ
+DATABASE_URL=mysql+pymysql://root:твой_пароль@localhost/game_platform
 
-5. Инициализировать базу данных
+Как сгенерировать SECRET_KEY:
+```bash
+python -c "import secrets; print(secrets.token_hex(24))"
+
+5. Настроить базу данных MySQL
+Создать базу game_platform
+
+6. Инициализировать базу данных
 python init_db.py
 
-6. Запустить приложение
+7. Запустить приложение
 python app.py
 
 🔑 Тестовый доступ
@@ -119,11 +127,12 @@ game-platform/
 ├── forms.py               # формы для регистрации / входа / смены пароля
 ├── init_db.py             # инициализация БД и создание администратора
 ├── requirements.txt       # зависимости
-├── config.py              # конфигурация (секретный ключ, подключение к БД)
+├── config.py              # конфигурация (читает секреты из .env)
+├── .env                   # секреты (НЕ пушится в Git)
 ├── templates/             # HTML-шаблоны (base, index, games, profile, admin...)
 ├── static/                # стили (CSS), скрипты игр (JS), изображения, аватары
-├── screenshots/           # скриншоты для README (опционально)
-└── README.md              # этот файл
+├── screenshots/          
+└── README.md              
 
 📄 Лицензия
 Автор: Захар (BlueLock-wasd)
