@@ -1,16 +1,16 @@
 import os
 from dotenv import load_dotenv
 
-load_dotenv()
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+load_dotenv(os.path.join(BASE_DIR, '.env'))
 
 
 class Config:
     # ===== Основное =====
-    SECRET_KEY = os.environ.get('SECRET_KEY')
+    SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     DEBUG = os.environ.get('FLASK_DEBUG', 'False').lower() in ('1', 'true', 'yes')
-    TOP_LIMIT = 5
 
     # ===== Роли =====
     ROLE_ADMIN = 'admin'
@@ -21,13 +21,30 @@ class Config:
 
     # ===== Пути =====
     UPLOAD_SUBFOLDER = 'uploads'
-    AVATAR_URL_PREFIX = 'uploads'   # если аватар хранится как 'uploads/xxx.png'
+    AVATAR_URL_PREFIX = 'uploads'
+    DEFAULT_AVATAR = 'default.jpg'
 
     # ===== Расширения =====
     ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
     ALLOWED_IMAGE_SUFFIXES = tuple(f'.{ext}' for ext in ALLOWED_IMAGE_EXTENSIONS)
 
-    # ===== Тексты сообщений =====
+    # ===== Лимиты =====
+    TOP_LIMIT = 5
+
+    # ===== Длины полей =====
+    USERNAME_MIN_LENGTH = 3
+    USERNAME_MAX_LENGTH = 50
+    EMAIL_MAX_LENGTH = 100
+    PASSWORD_MIN_LENGTH = 6
+    PASSWORD_HASH_MAX_LENGTH = 255
+    NOTE_MAX_LENGTH = 500
+
+    # ===== Админ по умолчанию =====
+    ADMIN_USERNAME = os.environ.get('ADMIN_USERNAME', 'admin')
+    ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', 'admin@game.ru')
+    ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'admin123')
+
+    # ===== Тексты сообщений (flash и API) =====
     MSG_ACCESS_DENIED = 'Доступ запрещен'
     MSG_LOGIN_SUCCESS = 'Вы успешно вошли!'
     MSG_LOGIN_FAILED = 'Неверное имя или пароль'
@@ -50,4 +67,6 @@ class Config:
     MSG_DB_ERROR = 'Ошибка базы данных'
     MSG_SCORE_SAVED = 'Результат сохранён!'
     MSG_LAST_ADMIN = 'Нельзя удалить последнего администратора'
-
+    MSG_USERNAME_TAKEN = 'Это имя уже занято'
+    MSG_EMAIL_TAKEN = 'Этот email уже зарегистрирован'
+    MSG_UNKNOWN_ERROR = 'Ошибка: {error}'

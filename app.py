@@ -214,7 +214,7 @@ def settings():
 @app.route('/notes')
 @login_required
 def notes_list():
-    notes = current_user.user_notes.order_by(Note.created_at.desc()).all()  # ← изменено
+    notes = current_user.notes_for_me.order_by(Note.created_at.desc()).all()  # ← изменено
     return render_template('notes.html', notes=notes)
 
 
@@ -268,7 +268,9 @@ def save_score():
         return jsonify({'success': False, 'message': Config.MSG_DB_ERROR}), 500
     except Exception as e:
         db.session.rollback()
-        return jsonify({'success': False, 'message': f'Ошибка: {str(e)}'}), 500
+        return jsonify({'success': False,
+                        'message': Config.MSG_UNKNOWN_ERROR.format(error=str(e))
+        }), 500
 
 
 @app.route('/admin/users')

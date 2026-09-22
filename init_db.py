@@ -1,13 +1,14 @@
 from app import app, db
 from models import Game, User
 from werkzeug.security import generate_password_hash
+from config import Config
 
 with app.app_context():
     # Удаляем все старые таблицы
     db.drop_all()
     print("✅ Старые таблицы удалены")
 
-    # Создаем только нужные таблицы
+    # Создаём новые
     db.create_all()
     print("✅ Новые таблицы созданы")
 
@@ -17,21 +18,20 @@ with app.app_context():
         Game(name='dino', display_name='Динозаврик'),
         Game(name='tetris', display_name='Тетрис')
     ]
-
     for game in games:
         db.session.add(game)
         print(f"✅ Добавлена игра: {game.display_name}")
 
-    # Создаем админа
+    # Создаём админа
     admin = User(
-        username='admin',
-        email='admin@game.ru',
-        password_hash=generate_password_hash('admin123'),
-        role='admin',
-        avatar_url='default.jpg'
+        username=Config.ADMIN_USERNAME,
+        email=Config.ADMIN_EMAIL,
+        password_hash=generate_password_hash(Config.ADMIN_PASSWORD),
+        role=Config.ROLE_ADMIN,
+        avatar_url=Config.DEFAULT_AVATAR
     )
     db.session.add(admin)
-    print("✅ Создан администратор: admin / admin123")
+    print(f"✅ Создан администратор: {Config.ADMIN_USERNAME}")
 
     db.session.commit()
     print("🎉 База данных успешно создана!")
