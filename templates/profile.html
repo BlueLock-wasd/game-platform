@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Профиль {{ user.username }} - GamePlatform{% endblock %}
+{% block title %}Профиль {{ user.username }} - {{ Config.APP_NAME }}{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
@@ -8,27 +8,28 @@
     <div class="profile-header slide-in">
         <div class="row align-items-center">
             <div class="col-md-3 text-center">
-                <img src="{{ url_for('static', filename='uploads/' + (user.avatar_url if user.avatar_url else 'default.jpg')) }}" 
-                     class="profile-avatar" 
+                {% set avatar = user.avatar_url or Config.DEFAULT_AVATAR %}
+                <img src="{{ url_for('static', filename=avatar) }}"
+                     class="profile-avatar"
                      alt="Avatar"
                      id="profileAvatar">
             </div>
             <div class="col-md-6">
                 <h2 class="mb-2">
                     {{ user.username }}
-                    {% if user.role == 'admin' %}
+                    {% if user.role == Config.ROLE_ADMIN %}
                         <span class="badge bg-danger ms-2">Администратор</span>
                     {% endif %}
                 </h2>
                 <p class="text-muted">
                     <i class="bi bi-envelope"></i> {{ user.email }}<br>
-                    <i class="bi bi-calendar"></i> На сайте с: {{ user.created_at.strftime('%d.%m.%Y') }}
+                    <i class="bi bi-calendar"></i> На сайте с: {{ user.created_at.strftime(Config.DATE_DISPLAY_FORMAT) }}
                 </p>
-                
+
                 <!-- Серия заходов -->
                 {% if streak %}
                 <div class="streak-badge">
-                    <i class="bi bi-fire"></i> 
+                    <i class="bi bi-fire"></i>
                     Текущая серия: {{ streak.current_streak }} дней
                     {% if streak.max_streak > streak.current_streak %}
                         <br><small>Рекорд: {{ streak.max_streak }} дней</small>
@@ -57,11 +58,13 @@
             <div class="stat-card">
                 <div class="game-icon">
                     {% if game_name == 'sudoku' %}
-                        <i class="bi text-primary"></i>
+                        <i class="bi bi-grid-3x3-gap text-primary fs-1"></i>
                     {% elif game_name == 'dino' %}
-                        <i class="bi text-success"></i>
+                        <i class="bi bi-controller text-success fs-1"></i>
                     {% elif game_name == 'tetris' %}
-                        <i class="bi text-danger"></i>
+                        <i class="bi bi-boxes text-danger fs-1"></i>
+                    {% else %}
+                        <i class="bi bi-joystick fs-1"></i>
                     {% endif %}
                 </div>
                 <h5>{{ game_name|capitalize }}</h5>
@@ -130,7 +133,7 @@
                             {{ form.content(class="form-control", rows="3", placeholder="Напишите комментарий...") }}
                         </div>
                         <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-pencil"></i> Оставить коментарий
+                            <i class="bi bi-pencil"></i> Оставить комментарий
                         </button>
                     </form>
                     {% endif %}
@@ -142,18 +145,20 @@
                             <div class="d-flex justify-content-between align-items-start">
                                 <div>
                                     <a href="{{ url_for('profile', username=note.author.username) }}" class="comment-author">
-                                        <img src="{{ url_for('static', filename='uploads/' + (note.author.avatar_url if note.author.avatar_url else 'default.jpg')) }}"
+                                        {% set author_avatar = note.author.avatar_url or Config.DEFAULT_AVATAR %}
+                                        <img src="{{ url_for('static', filename=author_avatar) }}"
                                              class="rounded-circle me-1"
                                              width="20" height="20"
                                              style="object-fit: cover;">
                                         {{ note.author.username }}
                                     </a>
                                     <span class="comment-date ms-2">
-                                        {{ note.created_at.strftime('%d.%m.%Y %H:%M') }}
+                                        {{ note.created_at.strftime(Config.DATETIME_DISPLAY_FORMAT) }}
                                     </span>
                                 </div>
-                                {% if current_user.id == note.author_id or current_user.role == 'admin' %}
-                                <button class="btn btn-sm btn-danger" onclick="deleteNote({{ note.id }})">
+                                {% if current_user.is_authenticated and (current_user.id == note.author_id or current_user.role == Config.ROLE_ADMIN) %}
+                                <button class="btn btn-sm btn-danger delete-note-btn"
+                                        data-note-id="{{ note.id }}">
                                     <i class="bi bi-trash"></i>
                                 </button>
                                 {% endif %}
@@ -171,20 +176,32 @@
 </div>
 
 <script>
-function deleteNote(noteId) {
-    if(confirm('Удалить заметку?')) {
-        fetch('/api/delete_note/' + noteId, {
-            method: 'DELETE'
-        })
-        .then(response => response.json())
-        .then(data => {
-            if(data.success) {
-                location.reload();
-            } else {
-                alert('Ошибка при удалении');
-            }
-        });
-    }
-}
+    const API_DELETE_NOTE_TEMPLATE = "{{ url_for('delete_note', note_id=0) }}";
+    const MSG_CONFIRM_DELETE_NOTE = "{{ Config.MSG_CONFIRM_DELETE_NOTE }}";
+    const MSG_DELETE_ERROR = "{{ Config.MSG_DELETE_ERROR }}";
+
+    document.addEventListener('click', function (e) {
+        const btn = e.target.closest('.delete-note-btn');
+        if (!btn) return;
+
+        const noteId = btn.dataset.noteId;
+        if (!confirm(MSG_CONFIRM_DELETE_NOTE)) return;
+
+        const url = API_DELETE_NOTE_TEMPLATE.replace('/0', '/' + noteId);
+
+        fetch(url, { method: 'DELETE' })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(MSG_DELETE_ERROR);
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка удаления:', error);
+                alert(MSG_DELETE_ERROR);
+            });
+    });
 </script>
 {% endblock %}

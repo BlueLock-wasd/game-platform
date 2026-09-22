@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Админ панель{% endblock %}
+{% block title %}Админ панель - {{ Config.APP_NAME }}{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
@@ -27,7 +27,7 @@
                     <div class="card text-white bg-success">
                         <div class="card-body">
                             <h5 class="card-title">Админы</h5>
-                            <h2>{{ users|selectattr('role', 'equalto', 'admin')|list|length }}</h2>
+                            <h2>{{ users|selectattr('role', 'equalto', Config.ROLE_ADMIN)|list|length }}</h2>
                         </div>
                     </div>
                 </div>
@@ -54,7 +54,8 @@
                 <div class="card-body">
                     <div class="input-group">
                         <span class="input-group-text"><i class="bi bi-search"></i></span>
-                        <input type="text" id="searchInput" class="form-control" placeholder="Поиск по имени или email..." onkeyup="searchUsers()">
+                        <input type="text" id="searchInput" class="form-control"
+                               placeholder="Поиск по имени или email..." onkeyup="searchUsers()">
                     </div>
                 </div>
             </div>
@@ -86,23 +87,26 @@
                                 <tr class="user-row">
                                     <td><strong>#{{ user.id }}</strong></td>
                                     <td>
-                                        <img src="{{ url_for('static', filename='uploads/' + (user.avatar_url if user.avatar_url else 'default.jpg')) }}"
-                                             class="rounded-circle" width="40" height="40" style="object-fit: cover;">
+                                        {% set avatar = user.avatar_url or Config.DEFAULT_AVATAR %}
+                                        <img src="{{ url_for('static', filename=avatar) }}"
+                                             class="rounded-circle" width="40" height="40"
+                                             style="object-fit: cover;">
                                     </td>
                                     <td>
-                                        <a href="{{ url_for('profile', username=user.username) }}" class="fw-bold text-decoration-none">
+                                        <a href="{{ url_for('profile', username=user.username) }}"
+                                           class="fw-bold text-decoration-none">
                                             {{ user.username }}
                                         </a>
                                     </td>
                                     <td>{{ user.email }}</td>
                                     <td>
-                                        {% if user.role == 'admin' %}
+                                        {% if user.role == Config.ROLE_ADMIN %}
                                             <span class="badge bg-danger">Админ</span>
                                         {% else %}
                                             <span class="badge bg-secondary">Пользователь</span>
                                         {% endif %}
                                     </td>
-                                    <td>{{ user.created_at.strftime('%d.%m.%Y') }}</td>
+                                    <td>{{ user.created_at.strftime(Config.DATE_DISPLAY_FORMAT) }}</td>
                                     <td>{{ user.last_login_date }}</td>
                                     <td>
                                         {% if user.streak %}
@@ -118,23 +122,28 @@
                                     </td>
                                     <td>
                                         <div class="btn-group btn-group-sm">
-                                            <a href="{{ url_for('profile', username=user.username) }}" class="btn btn-outline-primary" title="Профиль">
+                                            <a href="{{ url_for('profile', username=user.username) }}"
+                                               class="btn btn-outline-primary" title="Профиль">
                                                 <i class="bi bi-eye"></i>
                                             </a>
 
-                                            {% if user.role == 'admin' and user.id != current_user.id %}
-                                                <a href="{{ url_for('toggle_admin', user_id=user.id) }}" class="btn btn-outline-warning" title="Убрать админа">
+                                            {% if user.role == Config.ROLE_ADMIN and user.id != current_user.id %}
+                                                <a href="{{ url_for('toggle_admin', user_id=user.id) }}"
+                                                   class="btn btn-outline-warning" title="Убрать админа">
                                                     <i class="bi bi-person-down"></i>
                                                 </a>
-                                            {% elif user.role != 'admin' %}
-                                                <a href="{{ url_for('toggle_admin', user_id=user.id) }}" class="btn btn-outline-success" title="Сделать админом">
+                                            {% elif user.role != Config.ROLE_ADMIN %}
+                                                <a href="{{ url_for('toggle_admin', user_id=user.id) }}"
+                                                   class="btn btn-outline-success" title="Сделать админом">
                                                     <i class="bi bi-person-up"></i>
                                                 </a>
                                             {% endif %}
 
                                             {% if user.id != current_user.id %}
-                                                <a href="{{ url_for('delete_user', user_id=user.id) }}" class="btn btn-outline-danger" title="Удалить"
-                                                   onclick="return confirm('Точно удалить пользователя {{ user.username }}?')">
+                                                <a href="{{ url_for('delete_user', user_id=user.id) }}"
+                                                   class="btn btn-outline-danger delete-user-btn"
+                                                   data-username="{{ user.username }}"
+                                                   title="Удалить">
                                                     <i class="bi bi-trash"></i>
                                                 </a>
                                             {% endif %}
@@ -179,95 +188,108 @@
 <!-- Chart.js для графиков -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0/dist/chartjs-plugin-datalabels.min.js"></script>
+
 <script>
-// Поиск по таблице
-function searchUsers() {
-    let input = document.getElementById('searchInput');
-    let filter = input.value.toLowerCase();
-    let rows = document.getElementsByClassName('user-row');
+    const API_TOP_PLAYERS = "{{ url_for('top_players') }}";
+    const API_GAME_STATS = "{{ url_for('game_stats') }}";
+    const MSG_CONFIRM_DELETE_USER = "{{ Config.MSG_CONFIRM_DELETE_USER }}";
 
-    for(let i = 0; i < rows.length; i++) {
-        let name = rows[i].getElementsByTagName('td')[2].innerText.toLowerCase();
-        let email = rows[i].getElementsByTagName('td')[3].innerText.toLowerCase();
+    // Поиск по таблице
+    function searchUsers() {
+        const input = document.getElementById('searchInput');
+        const filter = input.value.toLowerCase();
+        const rows = document.getElementsByClassName('user-row');
 
-        if(name.includes(filter) || email.includes(filter)) {
-            rows[i].style.display = '';
-        } else {
-            rows[i].style.display = 'none';
+        for (let i = 0; i < rows.length; i++) {
+            const name = rows[i].getElementsByTagName('td')[2].innerText.toLowerCase();
+            const email = rows[i].getElementsByTagName('td')[3].innerText.toLowerCase();
+
+            rows[i].style.display = (name.includes(filter) || email.includes(filter)) ? '' : 'none';
         }
     }
-}
 
-// График топ игроков
-fetch('/api/top_players')
-    .then(response => response.json())
-    .then(data => {
-        new Chart(document.getElementById('topPlayersChart'), {
-            type: 'bar',
-            data: {
-                labels: data.names,
-                datasets: [{
-                    label: 'Всего игр',
-                    data: data.counts,
-                    backgroundColor: 'rgb(22 163 237 / 0.5)',
-                    borderColor: 'rgb(41 92 170)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                scales: {
-                    y: { beginAtZero: true }
-                }
-            }
-        });
+    // Подтверждение удаления
+    document.addEventListener('click', function (e) {
+        const btn = e.target.closest('.delete-user-btn');
+        if (!btn) return;
+        const username = btn.dataset.username;
+        if (!confirm(MSG_CONFIRM_DELETE_USER.replace('{username}', username))) {
+            e.preventDefault();
+        }
     });
 
-// График рекордов по играм
-fetch('/api/game_stats')
-    .then(response => response.json())
-    .then(data => {
-        // Общее количество партий
-        let total = data.sudoku + data.dino + data.tetris;
+    // График топ игроков
+    fetch(API_TOP_PLAYERS)
+        .then(response => response.json())
+        .then(data => {
+            new Chart(document.getElementById('topPlayersChart'), {
+                type: 'bar',
+                data: {
+                    labels: data.names,
+                    datasets: [{
+                        label: 'Всего игр',
+                        data: data.counts,
+                        backgroundColor: 'rgb(22 163 237 / 0.5)',
+                        borderColor: 'rgb(41 92 170)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+        });
 
-        new Chart(document.getElementById('gameRecordsChart'), {
-            type: 'pie',
-            data: {
-                labels: ['Судоку', 'Динозаврик', 'Тетрис'],
-                datasets: [{
-                    data: [data.sudoku, data.dino, data.tetris],
-                    backgroundColor: [
-                        'rgba(54, 162, 235, 0.5)',
-                        'rgba(75, 192, 192, 0.5)',
-                        'rgba(255, 99, 132, 0.5)'
-                    ],
-                    borderColor: [
-                        'rgba(54, 162, 235, 1)',
-                        'rgba(75, 192, 192, 1)',
-                        'rgba(255, 99, 132, 1)'
-                    ],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    datalabels: {
-                        formatter: (value, context) => {
-                            let percentage = ((value / total) * 100).toFixed(1);
-                            return `${percentage}%`;
+    // График рекордов по играм
+    fetch(API_GAME_STATS)
+        .then(response => response.json())
+        .then(data => {
+            const labels = data.map(g => g.display_name);
+            const counts = data.map(g => g.count);
+            const total = counts.reduce((a, b) => a + b, 0);
+
+            new Chart(document.getElementById('gameRecordsChart'), {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: counts,
+                        backgroundColor: [
+                            'rgba(54, 162, 235, 0.5)',
+                            'rgba(75, 192, 192, 0.5)',
+                            'rgba(255, 99, 132, 0.5)',
+                            'rgba(255, 206, 86, 0.5)',
+                            'rgba(153, 102, 255, 0.5)'
+                        ],
+                        borderColor: [
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(153, 102, 255, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        datalabels: {
+                            formatter: (value) => {
+                                const percentage = total ? ((value / total) * 100).toFixed(1) : '0.0';
+                                return `${percentage}%`;
+                            },
+                            color: '#fff',
+                            backgroundColor: 'rgba(0,0,0,0.6)',
+                            borderRadius: 4,
+                            padding: { left: 5, right: 5, top: 3, bottom: 3 },
+                            font: { weight: 'bold', size: 12 }
                         },
-                        color: '#fff',
-                        backgroundColor: 'rgba(0,0,0,0.6)',
-                        borderRadius: 4,
-                        padding: { left: 5, right: 5, top: 3, bottom: 3 },
-                        font: { weight: 'bold', size: 12 }
-                    },
-                    tooltip: { enabled: true }
-                }
-            },
-            // ===== (активация плагина) =====
-            plugins: [ChartDataLabels]
+                        tooltip: { enabled: true }
+                    }
+                },
+                plugins: [ChartDataLabels]
+            });
         });
-    });
 </script>
 {% endblock %}

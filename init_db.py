@@ -2,27 +2,28 @@ from app import app, db
 from models import Game, User
 from werkzeug.security import generate_password_hash
 from config import Config
+import os, sys
 
 with app.app_context():
-    # Удаляем все старые таблицы
+    if os.environ.get('CONFIRM_DROP') != 'yes':
+        print("⚠️  Установите CONFIRM_DROP=yes для подтверждения")
+        sys.exit(1)
+
     db.drop_all()
     print("✅ Старые таблицы удалены")
 
-    # Создаём новые
     db.create_all()
     print("✅ Новые таблицы созданы")
 
-    # Добавляем игры
     games = [
-        Game(name='sudoku', display_name='Судоку'),
-        Game(name='dino', display_name='Динозаврик'),
-        Game(name='tetris', display_name='Тетрис')
+        Game(name='sudoku', display_name='Судоку', icon='images/sudoku.png'),
+        Game(name='dino', display_name='Динозаврик', icon='images/phon_dino.png'),
+        Game(name='tetris', display_name='Тетрис', icon='images/tetris.png'),
     ]
     for game in games:
         db.session.add(game)
         print(f"✅ Добавлена игра: {game.display_name}")
 
-    # Создаём админа
     admin = User(
         username=Config.ADMIN_USERNAME,
         email=Config.ADMIN_EMAIL,
@@ -35,3 +36,4 @@ with app.app_context():
 
     db.session.commit()
     print("🎉 База данных успешно создана!")
+

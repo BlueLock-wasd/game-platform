@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Тетрис - GamePlatform{% endblock %}
+{% block title %}Тетрис - {{ Config.APP_NAME }}{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
@@ -8,12 +8,12 @@
         <div class="col-lg-8 mx-auto">
             <div class="card shadow">
                 <div class="card-header bg-danger text-white text-center">
-                    <h3><i class="bi"></i>Тетрис</h3>
+                    <h3><i class="bi bi-boxes"></i> Тетрис</h3>
                 </div>
                 <div class="card-body text-center">
                     <div class="alert alert-secondary mt-1">
                         <i class="bi bi-lightbulb"></i><strong>Совет дня:</strong>
-                        <span id="game-tip">Загрузка</span>
+                        <span id="game-tip">{{ Config.MSG_LOADING }}</span>
                     </div>
                     <!-- Игровое поле -->
                     <canvas id="tetrisCanvas" width="300" height="600" style="border:1px solid #000;"></canvas>
@@ -43,14 +43,17 @@
 </div>
 
 <script>
-    // Советы для игры Тетрис
+    const API_SAVE_SCORE = "{{ url_for('save_score') }}";
+    const GAME_NAME = "{{ game.name }}";
+    const MSG_GAME_OVER = "{{ Config.MSG_GAME_OVER }}";
+    const MSG_PAUSE = "{{ Config.MSG_PAUSE }}";
+
     const tetrisTips = [
         "Поворачивай фигуры до того, как они упадут.",
         "Собирай 4 линии за раз — это даёт больше очков.",
         "Не заполняй случайно центральный столбец — это самая важная зона."
     ];
 
-        // Функция для показа случайного совета
     function showRandomTip() {
         const randomIndex = Math.floor(Math.random() * tetrisTips.length);
         const tipElement = document.getElementById("game-tip");
@@ -59,43 +62,40 @@
         }
     }
 
-
     let canvas, ctx;
-    let cols = 10;
-    let rows = 20;
-    let cellSize = 30;
+    const cols = 10;
+    const rows = 20;
+    const cellSize = 30;
     let grid = [];
     let score = 0;
     let level = 1;
     let gameActive = false;
     let gamePaused = false;
 
-    // Больше разных фигур!
-    let pieces = [
-        { shape: [[1,1,1,1]], color: '#0ff' },           // I - голубой
-        { shape: [[1,1],[1,1]], color: '#ff0' },         // O - желтый
-        { shape: [[0,1,0],[1,1,1]], color: '#f0f' },     // T - розовый
-        { shape: [[1,0,0],[1,1,1]], color: '#f90' },      // L - оранжевый
-        { shape: [[0,0,1],[1,1,1]], color: '#00f' },      // J - синий
-        { shape: [[0,1,1],[1,1,0]], color: '#0f0' },      // S - зеленый
-        { shape: [[1,1,0],[0,1,1]], color: '#f00' }       // Z - красный
+    const pieces = [
+        { shape: [[1,1,1,1]], color: '#0ff' },
+        { shape: [[1,1],[1,1]], color: '#ff0' },
+        { shape: [[0,1,0],[1,1,1]], color: '#f0f' },
+        { shape: [[1,0,0],[1,1,1]], color: '#f90' },
+        { shape: [[0,0,1],[1,1,1]], color: '#00f' },
+        { shape: [[0,1,1],[1,1,0]], color: '#0f0' },
+        { shape: [[1,1,0],[0,1,1]], color: '#f00' }
     ];
 
     let currentPiece, pieceX, pieceY;
-    let nextPiece = null;  // Следующая фигура
+    let nextPiece = null;
 
     function initTetris() {
         canvas = document.getElementById('tetrisCanvas');
+        if (!canvas) return;
         ctx = canvas.getContext('2d');
-
         resetGrid();
     }
 
     function resetGrid() {
-        // Создаем пустую сетку
-        for(let i = 0; i < rows; i++) {
+        for (let i = 0; i < rows; i++) {
             grid[i] = [];
-            for(let j = 0; j < cols; j++) {
+            for (let j = 0; j < cols; j++) {
                 grid[i][j] = 0;
             }
         }
@@ -110,54 +110,51 @@
         document.getElementById('tetrisScore').textContent = '0';
         document.getElementById('tetrisLevel').textContent = '1';
         updatePauseButton();
-        showRandomTip();
 
-        // Генерируем первую фигуру и следующую
-        getRandomPiece();
-        nextPiece = getRandomPiece();
-        currentPiece = {...nextPiece};
+        currentPiece = getRandomPiece();
         nextPiece = getRandomPiece();
 
         pieceX = Math.floor(cols / 2) - Math.floor(currentPiece.shape[0].length / 2);
         pieceY = 0;
 
-        // Останавливаем предыдущий цикл если был
-        if(window.gameLoop) clearTimeout(window.gameLoop);
+        if (window.gameLoop) clearTimeout(window.gameLoop);
         updateTetris();
     }
 
     function togglePause() {
-        if(!gameActive) return;
+        if (!gameActive) return;
         gamePaused = !gamePaused;
         updatePauseButton();
 
-        // Перерисовываем чтобы убрать/показать фигуру
-        draw();
-
-        if(!gamePaused) {
-            // Продолжаем игру
-            if(window.gameLoop) clearTimeout(window.gameLoop);
+        if (gamePaused) {
+            if (window.gameLoop) {
+                clearTimeout(window.gameLoop);
+                window.gameLoop = null;
+            }
+        } else {
             updateTetris();
         }
+
+        draw();
     }
 
     function updatePauseButton() {
-        let icon = document.getElementById('pauseIcon');
-        let text = document.getElementById('pauseText');
+        const icon = document.getElementById('pauseIcon');
+        const text = document.getElementById('pauseText');
 
-        if(gamePaused) {
-            icon.className = 'bi-play-fill';
+        if (gamePaused) {
+            icon.className = 'bi bi-play-fill';
             text.textContent = 'Продолжить';
         } else {
-            icon.className = 'bi-pause-fill';
+            icon.className = 'bi bi-pause-fill';
             text.textContent = 'Пауза';
         }
     }
 
     function getRandomPiece() {
-        let idx = Math.floor(Math.random() * pieces.length);
+        const idx = Math.floor(Math.random() * pieces.length);
         return {
-            shape: pieces[idx].shape.map(row => [...row]), // Копируем форму
+            shape: pieces[idx].shape.map(row => [...row]),
             color: pieces[idx].color
         };
     }
@@ -165,60 +162,53 @@
     function draw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Рисуем сетку
-        for(let i = 0; i < rows; i++) {
-            for(let j = 0; j < cols; j++) {
-                if(grid[i][j]) {
+        for (let i = 0; i < rows; i++) {
+            for (let j = 0; j < cols; j++) {
+                if (grid[i][j]) {
                     ctx.fillStyle = grid[i][j];
                     ctx.fillRect(j * cellSize, i * cellSize, cellSize - 1, cellSize - 1);
                 } else {
-                    // Рисуем пустые клетки для красоты
                     ctx.strokeStyle = '#6e6d6d';
                     ctx.strokeRect(j * cellSize, i * cellSize, cellSize, cellSize);
                 }
             }
         }
 
-        // Рисуем текущую фигуру (только если игра активна и не на паузе)
-        if(currentPiece && gameActive && !gamePaused) {
+        if (currentPiece && gameActive && !gamePaused) {
             ctx.fillStyle = currentPiece.color;
-            for(let i = 0; i < currentPiece.shape.length; i++) {
-                for(let j = 0; j < currentPiece.shape[i].length; j++) {
-                    if(currentPiece.shape[i][j]) {
-                        let x = (pieceX + j) * cellSize;
-                        let y = (pieceY + i) * cellSize;
+            for (let i = 0; i < currentPiece.shape.length; i++) {
+                for (let j = 0; j < currentPiece.shape[i].length; j++) {
+                    if (currentPiece.shape[i][j]) {
+                        const x = (pieceX + j) * cellSize;
+                        const y = (pieceY + i) * cellSize;
                         ctx.fillRect(x, y, cellSize - 1, cellSize - 1);
                     }
                 }
             }
         }
 
-        // Если на паузе - показываем сообщение
-        if(gamePaused) {
+        if (gamePaused) {
             ctx.fillStyle = 'rgba(0,0,0,0.5)';
             ctx.fillRect(0, 250, canvas.width, 50);
             ctx.fillStyle = 'white';
             ctx.font = '20px Arial';
-            ctx.fillText('ПАУЗА', 90, 285);
+            ctx.fillText(MSG_PAUSE, 90, 285);
         }
     }
 
     function updateTetris() {
-        if(!gameActive || gamePaused) {
+        if (!gameActive || gamePaused) {
             draw();
             return;
         }
 
-        // Движение вниз
         pieceY++;
 
-        // Проверка столкновения
-        if(collision()) {
+        if (collision()) {
             pieceY--;
             mergePiece();
             clearLines();
 
-            // Берем следующую фигуру
             currentPiece = {
                 shape: nextPiece.shape.map(row => [...row]),
                 color: nextPiece.color
@@ -227,10 +217,9 @@
             pieceX = Math.floor(cols / 2) - Math.floor(currentPiece.shape[0].length / 2);
             pieceY = 0;
 
-            // Проверка проигрыша
-            if(collision()) {
+            if (collision()) {
                 gameActive = false;
-                alert('Game Over! Счет: ' + score);
+                alert(MSG_GAME_OVER.replace('{score}', score));
                 saveScore(score);
                 draw();
                 return;
@@ -238,18 +227,16 @@
         }
 
         draw();
-
-        // Запускаем следующий кадр
         window.gameLoop = setTimeout(() => requestAnimationFrame(updateTetris), 500 / level);
     }
 
     function collision() {
-        for(let i = 0; i < currentPiece.shape.length; i++) {
-            for(let j = 0; j < currentPiece.shape[i].length; j++) {
-                if(currentPiece.shape[i][j]) {
-                    let y = pieceY + i;
-                    let x = pieceX + j;
-                    if(y >= rows || x < 0 || x >= cols || (y >= 0 && grid[y] && grid[y][x])) {
+        for (let i = 0; i < currentPiece.shape.length; i++) {
+            for (let j = 0; j < currentPiece.shape[i].length; j++) {
+                if (currentPiece.shape[i][j]) {
+                    const y = pieceY + i;
+                    const x = pieceX + j;
+                    if (y >= rows || x < 0 || x >= cols || (y >= 0 && grid[y] && grid[y][x])) {
                         return true;
                     }
                 }
@@ -259,12 +246,12 @@
     }
 
     function mergePiece() {
-        for(let i = 0; i < currentPiece.shape.length; i++) {
-            for(let j = 0; j < currentPiece.shape[i].length; j++) {
-                if(currentPiece.shape[i][j]) {
-                    let y = pieceY + i;
-                    let x = pieceX + j;
-                    if(y >= 0 && y < rows && x >= 0 && x < cols) {
+        for (let i = 0; i < currentPiece.shape.length; i++) {
+            for (let j = 0; j < currentPiece.shape[i].length; j++) {
+                if (currentPiece.shape[i][j]) {
+                    const y = pieceY + i;
+                    const x = pieceX + j;
+                    if (y >= 0 && y < rows && x >= 0 && x < cols) {
                         grid[y][x] = currentPiece.color;
                     }
                 }
@@ -273,17 +260,16 @@
     }
 
     function clearLines() {
-        for(let i = rows - 1; i >= 0; i--) {
+        for (let i = rows - 1; i >= 0; i--) {
             let full = true;
-            for(let j = 0; j < cols; j++) {
-                if(!grid[i][j]) {
+            for (let j = 0; j < cols; j++) {
+                if (!grid[i][j]) {
                     full = false;
                     break;
                 }
             }
-            if(full) {
-                // Сдвигаем все строки вниз
-                for(let k = i; k > 0; k--) {
+            if (full) {
+                for (let k = i; k > 0; k--) {
                     grid[k] = [...grid[k-1]];
                 }
                 grid[0] = new Array(cols).fill(0);
@@ -291,62 +277,64 @@
                 document.getElementById('tetrisScore').textContent = score;
                 level = Math.floor(score / 500) + 1;
                 document.getElementById('tetrisLevel').textContent = level;
-                i++; // Проверяем эту же строку еще раз
+                i++;
             }
         }
     }
 
     function saveScore(score) {
-        fetch('/api/save_score', {
+        fetch(API_SAVE_SCORE, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
-                game: 'tetris',
+                game: GAME_NAME,
                 score: score
             })
-        });
+        }).catch(err => console.error('Error saving score:', err));
     }
 
-    document.addEventListener('keydown', function(e) {
-        if(!gameActive || gamePaused || !currentPiece) return;
+    document.addEventListener('keydown', function (e) {
+        if (!gameActive || gamePaused || !currentPiece) return;
 
-        switch(e.key) {
+        switch (e.key) {
             case 'ArrowLeft':
                 pieceX--;
-                if(collision()) pieceX++;
+                if (collision()) pieceX++;
                 draw();
                 break;
             case 'ArrowRight':
                 pieceX++;
-                if(collision()) pieceX--;
+                if (collision()) pieceX--;
                 draw();
                 break;
             case 'ArrowDown':
                 pieceY++;
-                if(collision()) pieceY--;
+                if (collision()) pieceY--;
                 draw();
                 break;
-            case 'ArrowUp':
-                // Поворот
-                let rotated = [];
-                for(let i = 0; i < currentPiece.shape[0].length; i++) {
+            case 'ArrowUp': {
+                const rotated = [];
+                for (let i = 0; i < currentPiece.shape[0].length; i++) {
                     rotated[i] = [];
-                    for(let j = currentPiece.shape.length - 1; j >= 0; j--) {
+                    for (let j = currentPiece.shape.length - 1; j >= 0; j--) {
                         rotated[i].push(currentPiece.shape[j][i]);
                     }
                 }
-                let oldShape = currentPiece.shape.map(row => [...row]);
+                const oldShape = currentPiece.shape.map(row => [...row]);
                 currentPiece.shape = rotated;
-                if(collision()) {
+                if (collision()) {
                     currentPiece.shape = oldShape;
                 }
                 draw();
                 break;
+            }
         }
         e.preventDefault();
     });
-    
-    window.onload = initTetris;
+
+    document.addEventListener('DOMContentLoaded', function () {
+        initTetris();
         showRandomTip();
+    });
 </script>
 {% endblock %}

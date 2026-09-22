@@ -1,24 +1,24 @@
 {% extends "base.html" %}
 
-{% block title %}Игры - GamePlatform{% endblock %}
+{% block title %}Игры - {{ Config.APP_NAME }}{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
     <h1 class="text-center mb-4">Выбери игру</h1>
-    
+
     <div class="row g-4">
         {% for game in games %}
         <div class="col-md-4">
             <div class="card h-100 shadow text-center">
                 <div class="card-body">
-                    {% if game.name == 'sudoku' %}
-                        <img src="{{ url_for('static', filename='images/sudoku.png') }}" alt="Судоку" style="width: 64px; height: 64px; object-fit: contain;">
-                    {% elif game.name == 'dino' %}
-                        <img src="{{ url_for('static', filename='images/phon_dino.png') }}" alt="Динозаврик">
-                    {% elif game.name == 'tetris' %}
-                        <img src="{{ url_for('static', filename='images/tetris.png') }}" alt="Тетрис">
+                    {% if game.icon %}
+                        <img src="{{ url_for('static', filename=game.icon) }}"
+                             alt="{{ game.display_name }}"
+                             style="width: 64px; height: 64px; object-fit: contain;">
+                    {% else %}
+                        <i class="bi bi-controller" style="font-size: 64px;"></i>
                     {% endif %}
-                    
+
                     <h3 class="mt-3">{{ game.display_name }}</h3>
                     <a href="{{ url_for('play_game', game_name=game.name) }}" class="btn btn-primary mt-3">
                         <i class="bi bi-play"></i> Играть
@@ -35,7 +35,7 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-header bg-warning text-dark">
-                    <h5 class="mb-0"><i class="bi bi-trophy"></i> ТОП-5 рекордов</h5>
+                    <h5 class="mb-0"><i class="bi bi-trophy"></i> ТОП-{{ Config.TOP_LIMIT }} рекордов</h5>
                 </div>
                 <div class="card-body">
                     <table class="table table-striped">
@@ -48,7 +48,7 @@
                             </tr>
                         </thead>
                         <tbody id="top-scores-list">
-                            <tr><td colspan="3" class="text-center">Загрузка...</td></tr>
+                            <tr><td colspan="4" class="text-center">{{ Config.MSG_LOADING }}</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -58,24 +58,50 @@
 </div>
 
 <script>
-    fetch('/api/top_scores')
-    .then(response => response.json())
-    .then(data => {
-        const tbody = document.getElementById('top-scores-list');
-        tbody.innerHTML = '';
-        data.forEach((item, index) => {
-            const row = `<tr>
-                <td>${index + 1}</td>
-                <td><a href="/profile/${item.username}" class="no-link-style">${item.username}</a></td>
-                <td>${item.game_name}</td>
-                <td>${item.score}</td>
-            </tr>`;
-            tbody.innerHTML += row;
+    const API_TOP_SCORES = "{{ url_for('top_scores') }}";
+    const PROFILE_URL_TEMPLATE = "{{ url_for('profile', username='__USERNAME__') }}";
+    const MSG_SCORES_LOAD_ERROR = "{{ Config.MSG_SCORES_LOAD_ERROR }}";
+
+    function escapeHtml(str) {
+        if (str === null || str === undefined) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    fetch(API_TOP_SCORES)
+        .then(response => response.json())
+        .then(data => {
+            const tbody = document.getElementById('top-scores-list');
+            tbody.innerHTML = '';
+
+            data.forEach((item, index) => {
+                const profileUrl = PROFILE_URL_TEMPLATE.replace(
+                    '__USERNAME__',
+                    encodeURIComponent(item.username)
+                );
+
+                const row = `<tr>
+                    <td>${index + 1}</td>
+                    <td>
+                        <a href="${profileUrl}" class="no-link-style">
+                            ${escapeHtml(item.username)}
+                        </a>
+                    </td>
+                    <td>${escapeHtml(item.game_name)}</td>
+                    <td>${escapeHtml(item.score)}</td>
+                </tr>`;
+
+                tbody.insertAdjacentHTML('beforeend', row);
+            });
+        })
+        .catch(error => {
+            console.error('Ошибка загрузки рекордов:', error);
+            document.getElementById('top-scores-list').innerHTML =
+                `<tr><td colspan="4" class="text-center text-danger">${escapeHtml(MSG_SCORES_LOAD_ERROR)}</td></tr>`;
         });
-    })
-    .catch(error => {
-        console.error('Ошибка загрузки рекордов:', error);
-        document.getElementById('top-scores-list').innerHTML = '<tr><td colspan="4" class="text-center text-danger">Не удалось загрузить рекорды</td></tr>';
-    });
 </script>
 {% endblock %}

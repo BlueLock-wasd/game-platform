@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Главная - GamePlatform{% endblock %}
+{% block title %}Главная - {{ Config.APP_NAME }}{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
@@ -8,7 +8,8 @@
     <div class="row mb-5">
         <div class="col-lg-8 mx-auto text-center">
             <h1 class="display-4 fw-bold text-primary mb-3">
-                <i class="bi bi-joystick"></i> Добро пожаловать на <h1>GamePlatform</h1>
+                <i class="bi bi-joystick"></i> Добро пожаловать на
+                <span class="text-warning">{{ Config.APP_NAME }}</span>
             </h1>
             <p class="lead p-index text-muted">
                 Играй в классические игры, соревнуйся с друзьями и отслеживай свою статистику!
@@ -16,7 +17,7 @@
             {% if not current_user.is_authenticated %}
                 <div class="mt-4">
                     <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg me-2">
-                        <i class="bi bi-person-plus"></i> Зарегистрироваться?
+                        <i class="bi bi-person-plus"></i> Зарегистрироваться
                     </a>
                     <a href="{{ url_for('login') }}" class="btn btn-outline-primary btn-lg">
                         <i class="bi bi-box-arrow-in-right"></i> Войти
@@ -26,13 +27,13 @@
         </div>
     </div>
 
-<div class="row mt-5 justify-content-center">
-    <div class="col-lg-10">
-        <div class="card about-card shadow-sm">
-            <div class="card-header bg-primary text-white">
-                <h4 class="mb-0"><i class="bi bi-info-circle">О проекте</i></h4>
-            </div>
-            <div class="card-body">
+    <div class="row mt-5 justify-content-center">
+        <div class="col-lg-10">
+            <div class="card about-card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="bi bi-info-circle"></i> О проекте</h4>
+                </div>
+                <div class="card-body">
                     <p>Этот сайт — создан для портфолио.</p>
                     <ul>
                         <li>Разработка веб-приложений на Flask (Python)</li>
@@ -40,16 +41,18 @@
                         <li>Регистрация, авторизация и роли (пользователь/администратор)</li>
                         <li>Интеграция игр и админ-панели с графиками</li>
                     </ul>
-                    <p class="text-muted mb-0">Проект: GamePlatform | Год: 2026</p>
+                    <p class="text-muted mb-0">
+                        Проект: {{ Config.APP_NAME }} | Год: {{ current_year }}
+                    </p>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
     <!-- Блок: Преимущества -->
     <div class="row text-center mt-5">
         <div class="col-12">
-            <h2 class="mb-4">Почему GamePlatform?</h2>
+            <h2 class="mb-4">Почему {{ Config.APP_NAME }}?</h2>
         </div>
         <div class="col-md-4">
             <i class="bi bi-trophy fs-1 text-warning"></i>
@@ -67,4 +70,5 @@
             <p class="text-muted">Управляй пользователями и смотри аналитику в графиках.</p>
         </div>
     </div>
+</div>
 {% endblock %}

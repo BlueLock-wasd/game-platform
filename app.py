@@ -11,6 +11,7 @@ from models import db, User, Game, GameSession, LoginStreak, Note
 from forms import LoginForm, RegisterForm, ChangePasswordForm, NoteForm
 
 
+
 app = Flask(__name__)
 app.config.from_object(Config)
 
@@ -45,6 +46,14 @@ def admin_required(f):
         return f(*args, **kwargs)
 
     return decorated_function
+
+
+@app.context_processor
+def inject_globals():
+    return {
+        'Config': Config,
+        'current_year': date.today().year
+    }
 
 
 @login_manager.user_loader
@@ -208,7 +217,8 @@ def settings():
             return redirect(url_for('profile', username=current_user.username))
         flash(Config.MSG_PASSWORD_WRONG, 'danger')
 
-    return render_template('settings.html', form=form)
+    games = Game.query.all()
+    return render_template('settings.html', form=form, games=games)
 
 
 @app.route('/notes')
@@ -320,10 +330,14 @@ def top_players():
 @admin_required
 def game_stats():
     games = Game.query.all()
-    stats = {}
-    for game in games:
-        stats[game.name] = GameSession.query.filter_by(game_id=game.id).count()
-    return jsonify(stats)
+    return jsonify([
+        {
+            'name': g.name,
+            'display_name': g.display_name,
+            'count': GameSession.query.filter_by(game_id=g.id).count()
+        }
+        for g in games
+    ])
 
 
 @app.route('/api/delete_note/<int:note_id>', methods=['DELETE'])

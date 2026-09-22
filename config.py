@@ -18,11 +18,12 @@ class Config:
 
     # ===== Время =====
     DATE_DISPLAY_FORMAT = '%d.%m.%Y'
+    DATETIME_DISPLAY_FORMAT = '%d.%m.%Y %H:%M'
 
     # ===== Пути =====
     UPLOAD_SUBFOLDER = 'uploads'
     AVATAR_URL_PREFIX = 'uploads'
-    DEFAULT_AVATAR = 'default.jpg'
+    DEFAULT_AVATAR = 'uploads/default.jpg'
 
     # ===== Расширения =====
     ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
@@ -45,6 +46,9 @@ class Config:
     ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'admin123')
 
     # ===== Тексты сообщений (flash и API) =====
+    APP_NAME = 'GamePlatform'
+    DEVELOPER_NAME = 'Захар'
+    DEVELOPER_GITHUB = 'https://github.com/BlueLock-wasd'
     MSG_ACCESS_DENIED = 'Доступ запрещен'
     MSG_LOGIN_SUCCESS = 'Вы успешно вошли!'
     MSG_LOGIN_FAILED = 'Неверное имя или пароль'
@@ -70,3 +74,16 @@ class Config:
     MSG_USERNAME_TAKEN = 'Это имя уже занято'
     MSG_EMAIL_TAKEN = 'Этот email уже зарегистрирован'
     MSG_UNKNOWN_ERROR = 'Ошибка: {error}'
+    MSG_CONFIRM_DELETE_USER = 'Точно удалить пользователя {username}?'
+    MSG_LOADING = 'Загрузка...'
+    MSG_SCORES_LOAD_ERROR = 'Не удалось загрузить рекорды'
+    MSG_CONFIRM_DELETE_NOTE = 'Удалить заметку?'
+    MSG_DELETE_ERROR = 'Ошибка при удалении'
+    MSG_CONFIRM_DELETE_ACCOUNT_1 = 'Вы уверены? Это действие необратимо!'
+    MSG_CONFIRM_DELETE_ACCOUNT_2 = 'Точно уверены? Все ваши данные будут удалены.'
+    MSG_ACCOUNT_DELETE_ERROR = 'Ошибка при удалении аккаунта'
+    MSG_GAME_OVER = 'Игра окончена! Счёт: {score}'
+    MSG_PAUSE = 'ПАУЗА'
+    MSG_ALREADY_SOLVED = 'Вы уже посмотрели решение! Начните новую игру.'
+    MSG_CONGRATS = 'Поздравляем! Судоку решено верно!'
+    MSG_SOLUTION_SHOWN = 'Решение показано. Чтобы получить очки, начните новую игру.'

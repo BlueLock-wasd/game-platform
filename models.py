@@ -48,6 +48,7 @@ class Game(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), unique=True, nullable=False)
     display_name = db.Column(db.String(100), nullable=False)
+    icon = db.Column(db.String(100), nullable=True)
 
     sessions = db.relationship('GameSession', backref='game', lazy='dynamic')
 

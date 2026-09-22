@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Динозаврик - GamePlatform{% endblock %}
+{% block title %}Динозаврик - {{ Config.APP_NAME }}{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
@@ -13,7 +13,7 @@
                 <div class="card-body text-center">
                     <div class="alert alert-secondary mt-1">
                         <i class="bi bi-lightbulb"></i><strong>Совет дня:</strong>
-                        <span id="game-tip">Загрузка</span>
+                        <span id="game-tip">{{ Config.MSG_LOADING }}</span>
                     </div>
                     <!-- Canvas для игры -->
                     <canvas id="gameCanvas" width="800" height="300" style="border:1px solid #000; background: #f0f0f0; width: 100%; height: auto;"></canvas>
@@ -22,6 +22,9 @@
                     <div class="mt-3">
                         <button class="btn btn-success" onclick="startGame()">
                             <i class="bi bi-play"></i> Старт
+                        </button>
+                        <button class="btn btn-danger" onclick="stopGame()">
+                            <i class="bi bi-stop"></i> Стоп
                         </button>
                     </div>
 
@@ -36,13 +39,19 @@
     </div>
 </div>
 
+
+
 <script>
-    // Советы для игры Динозаврик
+    const API_SAVE_SCORE = "{{ url_for('save_score') }}";
+    const GAME_NAME = "{{ game.name }}";
+    const MSG_GAME_OVER = "{{ Config.MSG_GAME_OVER }}";
+    const DINO_IMG = "{{ url_for('static', filename='images/dino.png') }}";
     const dinoTips = [
         "Прыгай в последний момент перед препятствием.",
         "Чем дольше бежишь, тем быстрее скорость — будь готов.",
         "Следи за ритмом: кактусы появляются через равные промежутки."
     ];
+
 
     function showRandomTip() {
     const randomIndex = Math.floor(Math.random() * dinoTips.length);
@@ -61,11 +70,8 @@
     let dinoImg = new Image();
     let imgLoaded = false;
 
-    // Фон
-    let bgX = 0;
-    let bgSpeed = 3;
 
-    dinoImg.src = "/static/images/dino.png";
+    dinoImg.src = DINO_IMG;
     dinoImg.onload = function() {
         imgLoaded = true;
         console.log("Динозавр загружен");
@@ -98,14 +104,13 @@
             gameRunning = true;
             obstacles = [];
             score = 0;
+            frameCount = 0;
             dino.y = 200;
             dino.vy = 0;
-            bgX = 0;
             document.getElementById('score').textContent = '0';
             if (gameLoopId) cancelAnimationFrame(gameLoopId);
             updateGame();
             console.log('Game started');
-                    showRandomTip();
         }
     }
 
@@ -200,7 +205,7 @@
                dino.y < obs.y + obs.height &&
                dino.y + dino.height > obs.y) {
                 gameRunning = false;
-                alert('Game Over! Счет: ' + score);
+                alert(MSG_GAME_OVER.replace('{score}', score));
                 saveScore(score);
                 break;
             }
@@ -217,11 +222,11 @@
     }
 
     function saveScore(score) {
-        fetch('/api/save_score', {
+        fetch(API_SAVE_SCORE, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
-                game: 'dino',
+                game: GAME_NAME,
                 score: score
             })
         }).catch(err => console.error('Error saving score:', err));
@@ -236,11 +241,10 @@
         }
     });
 
-    // Запускаем когда страница загрузится
-    window.onload = function() {
+   document.addEventListener('DOMContentLoaded', function () {
         initCanvas();
         showRandomTip();
-    };
+    });
 
 </script>
 {% endblock %}

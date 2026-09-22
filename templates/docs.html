@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Документация - GamePlatform{% endblock %}
+{% block title %}Документация - {{ Config.APP_NAME }}{% endblock %}
 
 {% block content %}
 <div class="container no-hover mt-4 ">
@@ -11,14 +11,14 @@
                     <h3 class="mb-0"><i class="bi bi-file-text"></i> Документация проекта</h3>
                 </div>
                 <div class="card-body">
-                    
+
                     <h4>О платформе</h4>
                     <p>
-                        GamePlatform - это веб-платформа для классических игр.
+                        {{ Config.APP_NAME }} - это веб-платформа для классических игр.
                         Платформа включает в себя три игры, систему статистики,
                         профили пользователей и социальные функции.
                     </p>
-                    
+
                     <h4 class="mt-4">Технологии</h4>
                     <ul>
                         <li><strong>Backend:</strong> Python Flask</li>
@@ -27,9 +27,9 @@
                         <li><strong>Аутентификация:</strong> Flask-Login</li>
                         <li><strong>Формы:</strong> Flask-WTF</li>
                     </ul>
-                    
+
                     <h4 class="mt-4">Игры</h4>
-                    
+
                     <div class="card no-hover mb-3">
                         <div class="card-header bg-primary text-white">
                             <h5 class="mb-0">Судоку</h5>
@@ -44,7 +44,7 @@
                             <p><strong>Система очков:</strong> 10 очков за каждую правильную клетку</p>
                         </div>
                     </div>
-                    
+
                     <div class="card no-hover mb-3">
                         <div class="card-header bg-success text-white">
                             <h5 class="mb-0">Динозаврик</h5>
@@ -55,7 +55,7 @@
                             <p><strong>Система очков:</strong> 10 очков за каждое преодоленное препятствие</p>
                         </div>
                     </div>
-                    
+
                     <div class="card no-hover mb-3">
                         <div class="card-header bg-danger text-white">
                             <h5 class="mb-0">Тетрис</h5>
@@ -72,27 +72,26 @@
                             <p><strong>Уровни:</strong> Уровень повышается каждые 500 очков, скорость растет</p>
                         </div>
                     </div>
-                    
+
                     <h4 class="mt-4">Система статистики</h4>
                     <ul>
                         <li><strong>Серии заходов:</strong> За каждый день входа серия увеличивается</li>
                         <li><strong>Рекорды:</strong> Сохраняются лучшие результаты по каждой игре</li>
                         <li><strong>Общая статистика:</strong> Количество игр, средний счет</li>
                     </ul>
-                    
+
                     <h4 class="mt-4">Социальные функции</h4>
                     <ul>
-                        <li><strong>Друзья:</strong> Добавление пользователей в друзья в разработке!!!</li>
                         <li><strong>Комментарии:</strong> Возможность оставлять комментарии на стенах</li>
                         <li><strong>Роли:</strong> Пользователи и администраторы</li>
                     </ul>
-                    
+
                     <h4 class="mt-4">Разработчик</h4>
                     <p>Проект разработан для портфолио</p>
-                    <p>Год: 2026</p>
-                    
+                    <p>Год: {{ current_year }}</p>
+
                     <hr>
-                    
+
                     <h4>API Endpoints</h4>
                     <table class="table table-bordered">
                         <thead>
@@ -105,27 +104,22 @@
                         <tbody>
                             <tr>
                                 <td>POST</td>
-                                <td>/api/save_score</td>
+                                <td>{{ url_for('save_score') }}</td>
                                 <td>Сохранить результат игры</td>
                             </tr>
                             <tr>
-                                <td>POST</td>
-                                <td>/api/add_friend</td>
-                                <td>Отправить запрос в друзья</td>
-                            </tr>
-                            <tr>
                                 <td>DELETE</td>
-                                <td>/api/delete_comment/&lt;id&gt;</td>
+                                <td>{{ url_for('delete_note', note_id=1) }}</td>
                                 <td>Удалить комментарий</td>
                             </tr>
                             <tr>
                                 <td>DELETE</td>
-                                <td>/api/delete_account</td>
+                                <td>{{ url_for('delete_account') }}</td>
                                 <td>Удалить аккаунт</td>
                             </tr>
                         </tbody>
                     </table>
-                    
+
                 </div>
             </div>
         </div>
