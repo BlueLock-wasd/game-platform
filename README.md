@@ -347,7 +347,6 @@ game-platform/
 ├── 📄 init_db.py              # инициализация БД и создание админа
 ├── 📄 requirements.txt        # зависимости
 ├── 📄 .env                    # секреты (не коммитится)
-├── 📄 .env.example            # шаблон .env
 ├── 📄 .gitignore
 ├── 📄 README.md
 │
@@ -360,7 +359,6 @@ game-platform/
 │   ├── settings.html          # смена пароля, аватара, удаление аккаунта
 │   ├── games.html             # список игр + таблица рекордов
 │   ├── docs.html              # документация проекта
-│   ├── notes.html             # комментарии к профилю
 │   │
 │   ├── 📁 admin/
 │   │   ├── dashboard.html     # админ-панель со статистикой и графиками
@@ -458,11 +456,7 @@ game-platform/
 
 ---
 
-## 📄 Лицензия
-
 <div align="center">
-
-**MIT License** — см. [LICENSE](LICENSE)
 
 Разработал ❤️ **Захар** ([@BlueLock-wasd](https://github.com/BlueLock-wasd))
 
